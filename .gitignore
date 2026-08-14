@@ -10,5 +10,3 @@ dist/
 next-env.d.ts
 tsconfig.tsbuildinfo
 auth-qr.png
-docs/
-design.md
