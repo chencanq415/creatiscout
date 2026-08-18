@@ -12,6 +12,8 @@ export const dict = {
   nav: {
     dashboard: { zh: "总览", en: "Dashboard" },
     campaigns: { zh: "项目管理", en: "Campaigns" },
+    creators: { zh: "达人发现", en: "Creators" },
+    collaborations: { zh: "合作管理", en: "Collaboration" },
     tracking: { zh: "竞品追踪", en: "Tracking" },
     contextLab: { zh: "内容工坊", en: "Context Lab" },
     pool: { zh: "私域达人池", en: "Private Pool" },

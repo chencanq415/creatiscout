@@ -1,6 +1,59 @@
 import type { LText } from "@/lib/i18n/dict";
 
-export type CampaignStatus = "live" | "outreach" | "paused" | "completed" | "risk";
+export type CampaignStatus = "draft" | "active" | "paused" | "closed";
+
+export type CampaignGoal =
+  | "brand_awareness"
+  | "content_production"
+  | "conversion_sales"
+  | "engagement";
+
+export type CampaignCurrency = "USD" | "CNY" | "EUR" | "GBP";
+
+export interface CampaignProduct {
+  id: string;
+  name: string;
+  currency: CampaignCurrency;
+  value: number;
+  image?: string;
+  productLink?: string;
+  description?: string;
+}
+
+export interface CampaignCompensation {
+  flatFee?: {
+    currency: CampaignCurrency;
+    minFee: number;
+    maxFee: number;
+    totalBudget: number;
+  };
+  commission?: {
+    rate: number;
+    affiliateLink?: string;
+  };
+  freeProducts: CampaignProduct[];
+  giftCard?: {
+    name: string;
+    currency: CampaignCurrency;
+    value: number;
+    description?: string;
+  };
+}
+
+export interface CampaignCreatorRequirements {
+  regions: string[];
+  languages: string[];
+  categories: string[];
+  minimumFollowers: number;
+  contentTypes: string[];
+}
+
+export interface CampaignAttachment {
+  id: string;
+  name: string;
+  size?: number;
+  url?: string;
+}
 
 /** 十步流程：Brief理解 → 达人匹配 → 达人建联 → 确认合作 → 合同签署 → 寄样管理 → 脚本确认 → 审核视频 → 发布回传 → 效果监控 */
 export type CampaignStep =
@@ -254,6 +307,11 @@ export interface Employee {
 export interface Campaign {
   id: string;
   name: LText;
+  brand: LText;
+  image?: string;
+  description?: LText;
+  goal: CampaignGoal;
+  category: string;
   status: CampaignStatus;
   startAt: string;
   endAt: string;
@@ -265,6 +323,10 @@ export interface Campaign {
   spent: number;
   platforms: string[];
   briefSummary: LText;
+  compensation: CampaignCompensation;
+  creatorRequirements: CampaignCreatorRequirements;
+  termsAndConditions?: string;
+  attachments: CampaignAttachment[];
   client?: LText;
   contact?: LText;
   quoteCeilingUsd?: number;

@@ -3,7 +3,6 @@ import {
   Bot,
   Check,
   ChevronLeft,
-  Eye,
   MoreHorizontal,
   Sparkles,
   UserCog,
@@ -12,6 +11,7 @@ import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { CampaignInfoPanel } from "@/components/campaign-drawer/info-panel";
 import { CampaignPipeline } from "@/components/campaign-drawer/pipeline";
+import { CampaignPerformanceInsight } from "@/components/campaign-drawer/performance-insight";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -24,11 +24,16 @@ import { useT, useLoc } from "@/lib/i18n/use-i18n";
 import { useUIStore } from "@/lib/store/ui-store";
 import type { Campaign } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 const L = {
-  showInfo: { zh: "展示 Campaign 信息", en: "Show campaign info" },
   more: { zh: "更多", en: "More" },
+  campaignDetails: { zh: "Campaign 详情", en: "Campaign Details" },
+  collaboration: { zh: "合作进度", en: "Collaboration" },
+  performanceInsight: { zh: "效果洞察", en: "Performance Insight" },
 } as const;
+
+type DetailTab = "details" | "collaboration" | "performance";
 
 type AutomationMode = NonNullable<Campaign["automation"]>;
 
@@ -58,9 +63,8 @@ export default function CampaignDetailPage() {
   const t = useT();
   const l = useLoc();
   const campaign = useUIStore((s) => s.campaigns.find((c) => c.id === params.id));
-  const infoCollapsed = useUIStore((s) => s.campaignInfoCollapsed);
-  const toggleInfo = useUIStore((s) => s.toggleCampaignInfo);
   const updateCampaign = useUIStore((s) => s.updateCampaign);
+  const [activeTab, setActiveTab] = useState<DetailTab>("details");
   if (!campaign) return notFound();
 
   const automation = campaign.automation ?? "full";
@@ -82,17 +86,6 @@ export default function CampaignDetailPage() {
           {l(campaign.name)}
         </h2>
         <StatusBadge status={campaign.status} />
-        {infoCollapsed && (
-          <button
-            type="button"
-            onClick={toggleInfo}
-            aria-label={l(L.showInfo)}
-            title={l(L.showInfo)}
-            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-slate transition-colors hover:bg-surface-warm hover:text-ink"
-          >
-            <Eye className="h-4 w-4" />
-          </button>
-        )}
         <div className="ml-auto flex flex-shrink-0 items-center gap-2">
           {/* Automation mode indicator — defaults to Full Auto */}
           <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-2.5 py-1">
@@ -158,21 +151,39 @@ export default function CampaignDetailPage() {
         </div>
       </div>
 
-      {/* Body — info column collapsible */}
-      <div
-        className={cn(
-          "grid min-h-0 flex-1 transition-[grid-template-columns] duration-200 ease-out",
-          infoCollapsed
-            ? "grid-cols-[0px_minmax(0,1fr)]"
-            : "grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]",
+      <div className="flex h-12 flex-shrink-0 items-end border-b border-border bg-surface px-6">
+        {([
+          { id: "details", label: l(L.campaignDetails) },
+          { id: "collaboration", label: l(L.collaboration) },
+          { id: "performance", label: l(L.performanceInsight) },
+        ] as { id: DetailTab; label: string }[]).map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "relative h-12 px-5 text-[12.5px] font-medium transition-colors",
+              activeTab === tab.id ? "text-brand" : "text-slate hover:text-ink",
+            )}
+          >
+            {tab.label}
+            <span className={cn("absolute inset-x-3 bottom-0 h-[2px] rounded-full", activeTab === tab.id ? "bg-brand" : "bg-transparent")} />
+          </button>
+        ))}
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {activeTab === "details" && (
+          <div className="h-full overflow-y-auto bg-page p-6 lg:p-8">
+            <CampaignInfoPanel campaign={campaign} standalone />
+          </div>
         )}
-      >
-        <div className={cn("overflow-hidden", infoCollapsed && "pointer-events-none")}>
-          <CampaignInfoPanel campaign={campaign} />
-        </div>
-        <div className="min-w-0">
-          <CampaignPipeline campaign={campaign} />
-        </div>
+        {activeTab === "collaboration" && <CampaignPipeline campaign={campaign} />}
+        {activeTab === "performance" && (
+          <div className="h-full overflow-y-auto bg-page p-6 lg:p-8">
+            <CampaignPerformanceInsight campaign={campaign} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -184,11 +195,10 @@ function StatusBadge({ status }: { status: Campaign["status"] }) {
     Campaign["status"],
     { tone: "teal" | "blue" | "amber" | "gray" | "pink"; label: { zh: string; en: string } }
   > = {
-    live: { tone: "teal", label: { zh: "进行中", en: "Live" } },
-    outreach: { tone: "blue", label: { zh: "外联中", en: "Outreach" } },
+    draft: { tone: "gray", label: { zh: "草稿", en: "Draft" } },
+    active: { tone: "teal", label: { zh: "进行中", en: "Active" } },
     paused: { tone: "amber", label: { zh: "已暂停", en: "Paused" } },
-    completed: { tone: "gray", label: { zh: "已完成", en: "Completed" } },
-    risk: { tone: "pink", label: { zh: "风险", en: "At Risk" } },
+    closed: { tone: "blue", label: { zh: "已结束", en: "Closed" } },
   };
   const m = map[status];
   return <Badge tone={m.tone}>{l(m.label)}</Badge>;

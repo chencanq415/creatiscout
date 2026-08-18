@@ -7,15 +7,15 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import type { LText } from "@/lib/i18n/dict";
-import { useLoc, useLocale } from "@/lib/i18n/use-i18n";
+import { useLoc } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
 
 const PLAN_KEY = "creatiscout.employee.plan.v2";
 
 type PlanId = "free" | "plus" | "pro" | "enterprise";
-type AvatarSet = "female" | "male";
 
 type Plan = {
   id: PlanId;
@@ -27,7 +27,6 @@ type Plan = {
   badge?: LText;
   pool: LText;
   features: LText[];
-  workflow?: string[];
 };
 
 const copy = {
@@ -71,14 +70,7 @@ const copy = {
   topUp: { zh: "查看 Credit 充值", en: "Explore credit top-ups" },
   flexible: { zh: "灵活定价", en: "Flexible" },
   perMonth: { zh: "/ 月", en: "/ month" },
-  workflowLabel: {
-    zh: "从找达人到付款，全程帮你完成",
-    en: "From creator search to payment — fully managed",
-  },
   mandatory: { zh: "完成选择后才能进入产品", en: "Choose an employee to continue" },
-  avatarStyle: { zh: "形象版本", en: "Avatar style" },
-  female: { zh: "女性版", en: "Women" },
-  male: { zh: "男性版", en: "Men" },
 } as const;
 
 const plans: Plan[] = [
@@ -152,7 +144,6 @@ const plans: Plan[] = [
       { zh: "打款支付、对账与完整交付归档", en: "Payments, reconciliation, and delivery records" },
       { zh: "数据驱动决策与持续营销支持", en: "Data-led decisions and ongoing marketing support" },
     ],
-    workflow: ["Campaign", "Search", "Outreach", "Draft", "Publish", "Payment"],
   },
 ];
 
@@ -162,9 +153,11 @@ function isPlanId(value: string | null): value is PlanId {
 
 export function FirstVisitOnboarding() {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    setOpen(!isPlanId(window.localStorage.getItem(PLAN_KEY)));
+    const forcePreview = new URLSearchParams(window.location.search).get("onboarding") === "1";
+    setOpen(forcePreview || !isPlanId(window.localStorage.getItem(PLAN_KEY)));
   }, []);
 
   if (!open) return null;
@@ -176,7 +169,13 @@ export function FirstVisitOnboarding() {
       className="fixed inset-0 z-[100] flex items-center justify-center bg-navy/55 p-3 backdrop-blur-[3px]"
     >
       <div className="max-h-[96vh] w-full max-w-[1260px] overflow-y-auto rounded-[16px] border border-white/50 bg-surface shadow-floating animate-fade-in">
-        <DigitalEmployeeOnboarding modal onComplete={() => setOpen(false)} />
+        <DigitalEmployeeOnboarding
+          modal
+          onComplete={() => {
+            setOpen(false);
+            router.replace("/campaigns");
+          }}
+        />
       </div>
     </div>
   );
@@ -190,16 +189,12 @@ export function DigitalEmployeeOnboarding({
   onComplete?: () => void;
 }) {
   const l = useLoc();
-  const [locale, setLocale] = useLocale();
   const [selected, setSelected] = useState<PlanId>("plus");
   const [currentPlan, setCurrentPlan] = useState<PlanId | null>(modal ? null : "free");
   const [saved, setSaved] = useState(false);
   const [demoRequested, setDemoRequested] = useState(false);
-  const [avatarSet, setAvatarSet] = useState<AvatarSet>("female");
   const selectedPlan = plans.find((plan) => plan.id === selected) ?? plans[1];
-  const avatarRoster = avatarSet === "female"
-    ? "/avatars/digital-employees-roster-female-v1.png"
-    : "/avatars/digital-employees-roster-male-v1.png";
+  const avatarRoster = "/avatars/digital-employees-roster-female-v1.png";
 
   useEffect(() => {
     if (modal) return;
@@ -229,40 +224,7 @@ export function DigitalEmployeeOnboarding({
 
   return (
     <div className={cn("relative", modal ? "px-6 pb-6 pt-5 lg:px-8 lg:pb-8" : "p-7 lg:p-8")}>
-      <div className="absolute right-5 top-5 z-10 flex flex-col items-end gap-2">
-        <div className="flex rounded-[8px] border border-border bg-surface p-1 shadow-card">
-          {(["en", "zh"] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setLocale(value)}
-              className={cn(
-                "h-7 rounded-[6px] px-2.5 text-[11px] font-semibold transition-colors",
-                locale === value ? "bg-navy text-white" : "text-slate hover:bg-surface-warm",
-              )}
-            >
-              {value === "en" ? "EN" : "中文"}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-1 rounded-[8px] border border-border bg-surface p-1 shadow-card" aria-label={l(copy.avatarStyle)}>
-          {(["female", "male"] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setAvatarSet(value)}
-              className={cn(
-                "h-7 rounded-[6px] px-2.5 text-[10.5px] font-semibold transition-colors",
-                avatarSet === value ? "bg-soft-pink text-brand" : "text-slate hover:bg-surface-warm",
-              )}
-            >
-              {l(value === "female" ? copy.female : copy.male)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <header className="max-w-[820px] pr-40">
+      <header className="max-w-[820px]">
         <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-soft-pink px-3 py-1.5 text-[10px] font-bold tracking-[0.12em] text-brand">
           <Sparkles className="h-3 w-3" />
           {l(modal ? copy.onboardingEyebrow : copy.manageEyebrow)}
@@ -341,24 +303,6 @@ export function DigitalEmployeeOnboarding({
                   {plan.priceSuffix && <span className="ml-1 text-[9.5px] text-muted">{l(plan.priceSuffix)}</span>}
                 </div>
               </div>
-
-              {plan.workflow && (
-                <div className="mt-3 rounded-[9px] bg-soft-teal/60 p-2.5">
-                  <div className="mb-2 text-[9px] font-bold uppercase tracking-wider text-teal-text">
-                    {l(copy.workflowLabel)}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1">
-                    {plan.workflow.map((step, index) => (
-                      <span key={step} className="contents">
-                        <span className="rounded bg-white px-1.5 py-1 text-[8.5px] font-semibold text-ink shadow-card">
-                          {step}
-                        </span>
-                        {index < plan.workflow!.length - 1 && <ArrowRight className="h-2.5 w-2.5 text-teal-text" />}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <ul className="mt-3 flex-1 space-y-2">
                 {plan.features.map((feature) => (

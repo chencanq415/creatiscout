@@ -19,7 +19,7 @@ export function Topbar() {
   const pathname = usePathname();
   const t = useT();
   const l = useLoc();
-  const showContextChip = !pathname.startsWith("/employee/") && !pathname.startsWith("/employees");
+  const showContextChip = /^\/campaigns\/[^/]+/.test(pathname);
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const openChat = useUIStore((s) => s.openChat);

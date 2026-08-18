@@ -3,8 +3,9 @@ import {
   Binoculars,
   FileText,
   FlaskConical,
-  Home,
   Mail,
+  Search,
+  Handshake,
   Plus,
   Smile,
   Users,
@@ -17,8 +18,9 @@ import { cn } from "@/lib/utils";
 import { AccountMenu } from "./account-menu";
 
 const navItems = [
-  { href: "/dashboard", labelKey: "nav.dashboard", icon: Home },
   { href: "/campaigns", labelKey: "nav.campaigns", icon: FileText },
+  { href: "/creators", labelKey: "nav.creators", icon: Search },
+  { href: "/collaborations", labelKey: "nav.collaborations", icon: Handshake },
   { href: "/tracking", labelKey: "nav.tracking", icon: Binoculars },
   { href: "/context-lab", labelKey: "nav.contextLab", icon: FlaskConical },
   { href: "/pool", labelKey: "nav.pool", icon: Users },
@@ -40,7 +42,8 @@ export function BusinessSidebar() {
       )}
     >
       {/* Logo */}
-      <div
+      <Link
+        href="/campaigns"
         className={cn(
           "flex items-center py-4",
           expanded ? "gap-2 px-[14px]" : "justify-center px-0",
@@ -56,7 +59,7 @@ export function BusinessSidebar() {
             CreatiScout
           </span>
         )}
-      </div>
+      </Link>
 
       {/* New Task CTA */}
       <div className={cn("pb-2 pt-1", expanded ? "px-2.5" : "px-2")}>
@@ -85,7 +88,7 @@ export function BusinessSidebar() {
         {navItems.map((item) => {
           const active =
             pathname === item.href ||
-            (item.href !== "/dashboard" && pathname.startsWith(item.href));
+            pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           return (
             <NavLink

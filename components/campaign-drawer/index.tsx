@@ -10,11 +10,10 @@ import { CampaignPipeline } from "./pipeline";
 
 const L = {
   back: { zh: "返回", en: "Back" },
-  statusLive: { zh: "进行中", en: "Live" },
-  statusOutreach: { zh: "外联中", en: "Outreach" },
+  statusDraft: { zh: "草稿", en: "Draft" },
+  statusActive: { zh: "进行中", en: "Active" },
   statusPaused: { zh: "已暂停", en: "Paused" },
-  statusCompleted: { zh: "已完成", en: "Completed" },
-  statusRisk: { zh: "风险", en: "At Risk" },
+  statusClosed: { zh: "已结束", en: "Closed" },
 } as const;
 
 const stepOrder: Campaign["step"][] = [
@@ -132,11 +131,10 @@ function StatusBadge({ status }: { status: Campaign["status"] }) {
     Campaign["status"],
     { tone: "teal" | "blue" | "amber" | "gray" | "pink"; label: { zh: string; en: string } }
   > = {
-    live: { tone: "teal", label: L.statusLive },
-    outreach: { tone: "blue", label: L.statusOutreach },
+    draft: { tone: "gray", label: L.statusDraft },
+    active: { tone: "teal", label: L.statusActive },
     paused: { tone: "amber", label: L.statusPaused },
-    completed: { tone: "gray", label: L.statusCompleted },
-    risk: { tone: "pink", label: L.statusRisk },
+    closed: { tone: "blue", label: L.statusClosed },
   };
   const m = map[status];
   return <Badge tone={m.tone}>{l(m.label)}</Badge>;

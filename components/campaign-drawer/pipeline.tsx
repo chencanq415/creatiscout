@@ -3,65 +3,84 @@ import { useLoc } from "@/lib/i18n/use-i18n";
 import { usePipelineStore } from "@/lib/store/pipeline-store";
 import type { Campaign } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { StepBrief } from "./steps/step-brief";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { StepConfirm } from "./steps/step-confirm";
 import { StepContract } from "./steps/step-contract";
 import { StepMatching } from "./steps/step-matching";
 import { StepOutreach } from "./steps/step-outreach";
 import { StepPublish } from "./steps/step-publish";
-import { StepSample } from "./steps/step-sample";
 import { StepScript } from "./steps/step-script";
 import { PipelineAdvanceContext } from "./steps/step-shell";
 import { StepTracking } from "./steps/step-tracking";
-import { StepVideo } from "./steps/step-video";
 
 const L = {
-  brief: { zh: "Brief 理解", en: "Brief Intake" },
-  matching: { zh: "达人匹配", en: "Creator Matching" },
-  outreach: { zh: "达人建联", en: "Creator Outreach" },
-  confirm: { zh: "确认合作", en: "Deal Confirmation" },
-  contract: { zh: "合同签署", en: "Contract Signing" },
-  sample: { zh: "寄样管理", en: "Sample Management" },
-  script: { zh: "脚本确认", en: "Script Alignment" },
-  video: { zh: "审核视频", en: "Video Review" },
-  publish: { zh: "发布回传", en: "Publish & Payment" },
-  tracking: { zh: "效果监控", en: "Performance Tracking" },
+  collaboration: { zh: "协作进度", en: "Collaboration" },
+  collaborationDesc: { zh: "Campaign × 达人完整执行流程", en: "Campaign × creator delivery workflow" },
+  shortlist: { zh: "候选达人", en: "Shortlist" },
+  outreach: { zh: "达人建联", en: "Outreach" },
+  offer: { zh: "合作报价", en: "Offer" },
+  confirmed: { zh: "确认合作", en: "Confirmed" },
+  draft: { zh: "内容草稿", en: "Draft" },
+  publication: { zh: "作品发布", en: "Publication" },
+  payment: { zh: "付款", en: "Payment" },
+  tracking: { zh: "效果追踪", en: "Performance Tracking" },
 } as const;
 
+type CollaborationStage =
+  | "shortlist"
+  | "outreach"
+  | "offer"
+  | "confirmed"
+  | "draft"
+  | "publication"
+  | "payment"
+  | "tracking";
+
 type StepDef = {
-  id: string;
+  id: CollaborationStage;
   label: string;
-  conditional?: boolean;
+  count: number;
 };
 
 export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
   const l = useLoc();
   const lookalikeUnseen = usePipelineStore((s) => s.lookalikeUnseen);
   const clearLookalikeUnseen = usePipelineStore((s) => s.clearLookalikeUnseen);
+  const outreachDeals = usePipelineStore((s) => s.outreachDeals);
+  const confirmations = usePipelineStore((s) => s.confirmations);
+  const contracts = usePipelineStore((s) => s.contracts);
+  const scriptThreads = usePipelineStore((s) => s.scriptThreads);
+  const videoThreads = usePipelineStore((s) => s.videoThreads);
+  const publishRecords = usePipelineStore((s) => s.publishRecords);
+  const invoices = usePipelineStore((s) => s.invoices);
 
   const steps: StepDef[] = useMemo(() => {
-    const base: StepDef[] = [
-      { id: "brief", label: l(L.brief) },
-      { id: "matching", label: l(L.matching) },
-      { id: "outreach", label: l(L.outreach) },
-      { id: "confirm", label: l(L.confirm) },
-      { id: "contract", label: l(L.contract) },
-    ];
-    if (campaign.toggles.sampling) {
-      base.push({ id: "sample", label: l(L.sample), conditional: true });
-    }
-    base.push({ id: "script", label: l(L.script) });
-    base.push({ id: "video", label: l(L.video) });
-    base.push({ id: "publish", label: l(L.publish) });
-    base.push({ id: "tracking", label: l(L.tracking) });
-    return base;
-  }, [campaign.toggles.sampling, l]);
+    const draftCreators = new Set([
+      ...scriptThreads.map((thread) => thread.creatorId),
+      ...videoThreads.map((thread) => thread.creatorId),
+    ]).size;
+    const outreachCount = outreachDeals.filter((deal) => deal.stage === "inquiry").length;
+    const offerCount = outreachDeals.filter((deal) =>
+      ["negotiation", "internal_review", "client_review"].includes(deal.stage),
+    ).length;
+    const publicationCount = publishRecords.filter((record) => !record.publishedAt).length;
+    const paymentCount = invoices.filter((invoice) => !invoice.paid).length;
 
-  const initialStepId = campaign.step;
+    return [
+      { id: "shortlist", label: l(L.shortlist), count: Math.max(campaign.proposed - outreachDeals.length, 0) },
+      { id: "outreach", label: l(L.outreach), count: outreachCount },
+      { id: "offer", label: l(L.offer), count: offerCount },
+      { id: "confirmed", label: l(L.confirmed), count: Math.max(confirmations.length, contracts.length) },
+      { id: "draft", label: l(L.draft), count: draftCreators },
+      { id: "publication", label: l(L.publication), count: publicationCount },
+      { id: "payment", label: l(L.payment), count: paymentCount },
+      { id: "tracking", label: l(L.tracking), count: Math.max(campaign.delivered, invoices.filter((invoice) => invoice.paid).length) },
+    ];
+  }, [campaign.delivered, campaign.proposed, confirmations, contracts, invoices, l, outreachDeals, publishRecords, scriptThreads, videoThreads]);
+
+  const initialStepId: CollaborationStage = mapCampaignStep(campaign.step);
   const initialIdx = steps.findIndex((s) => s.id === initialStepId);
-  const [active, setActive] = useState<string>(initialIdx < 0 ? steps[0].id : initialStepId);
+  const [active, setActive] = useState<CollaborationStage>(initialIdx < 0 ? steps[0].id : initialStepId);
   const [currentIdx, setCurrentIdx] = useState(initialIdx < 0 ? 0 : initialIdx);
   const activeRef = useRef<HTMLButtonElement | null>(null);
 
@@ -84,14 +103,19 @@ export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
     if (nextStep) setActive(nextStep.id);
   }
 
-  function selectStep(id: string) {
+  function selectStep(id: CollaborationStage) {
     setActive(id);
-    // 进入达人匹配即视为已查看 Lookalike 新批次
-    if (id === "matching" && lookalikeUnseen > 0) clearLookalikeUnseen();
+    if (id === "shortlist" && lookalikeUnseen > 0) clearLookalikeUnseen();
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      <div className="flex-shrink-0 border-b border-border bg-surface px-6 py-3">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-brand">
+          {l(L.collaboration)}
+        </div>
+        <div className="mt-0.5 text-[11px] text-muted">{l(L.collaborationDesc)}</div>
+      </div>
       {/* Step pipeline — horizontally scrollable on narrow widths, fade-out mask on edges */}
       <div className="flex-shrink-0 border-b border-border bg-surface">
         <div
@@ -104,21 +128,19 @@ export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
             scrollbarWidth: "thin",
           }}
         >
-          <div className="flex w-max items-stretch pb-0">
+          <div className="flex w-max items-stretch gap-1 pb-0">
             {steps.map((s, i) => {
               const isPast = i < currentIdx;
               const isCurrent = i === currentIdx;
               const isActive = active === s.id;
-              const isLast = i === steps.length - 1;
-              const showLookalikeBadge = s.id === "matching" && lookalikeUnseen > 0;
               return (
-                <Fragment key={s.id}>
                   <button
+                    key={s.id}
                     ref={isActive ? activeRef : undefined}
                     type="button"
                     onClick={() => selectStep(s.id)}
                     className={cn(
-                      "group relative flex flex-shrink-0 items-center gap-1.5 px-2 pb-3 pt-1.5 text-[12px] transition-colors",
+                      "group relative flex min-w-[108px] flex-shrink-0 items-center gap-2 rounded-t-[9px] px-3 pb-3 pt-3 text-[12px] transition-colors",
                       isActive
                         ? "text-brand"
                         : isCurrent
@@ -137,15 +159,13 @@ export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
                         !isPast && !isCurrent && !isActive && "bg-surface-warm text-muted",
                       )}
                     >
-                      {isPast ? <Check className="h-2.5 w-2.5" strokeWidth={3} /> : i + 1}
+                      {i + 1}
                     </span>
                     <span className="whitespace-nowrap font-medium">{s.label}</span>
-                    {/* Lookalike 新批次红点 */}
-                    {showLookalikeBadge && (
-                      <span className="flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-brand-strong px-1 text-[9px] font-bold text-white">
-                        {lookalikeUnseen}
-                      </span>
-                    )}
+                    <span className={cn(
+                      "absolute right-1.5 top-0 flex h-[17px] min-w-[17px] -translate-y-1/3 items-center justify-center rounded-full px-1 text-[9px] font-bold shadow-sm",
+                      isActive ? "bg-brand-strong text-white" : "bg-surface-warm text-slate",
+                    )}>{s.count}</span>
                     <span
                       className={cn(
                         "absolute inset-x-1.5 -bottom-px h-[2px] rounded-full transition-colors",
@@ -154,17 +174,6 @@ export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
                       aria-hidden
                     />
                   </button>
-                  {!isLast && (
-                    <div className="flex flex-shrink-0 items-center px-1" aria-hidden>
-                      <span
-                        className={cn(
-                          "h-[2px] w-4 rounded-full transition-colors",
-                          i < currentIdx ? "bg-teal/60" : "bg-border",
-                        )}
-                      />
-                    </div>
-                  )}
-                </Fragment>
               );
             })}
           </div>
@@ -174,18 +183,26 @@ export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
       {/* Active step content */}
       <div className="flex-1 overflow-y-auto bg-page p-6">
         <PipelineAdvanceContext.Provider value={advance}>
-          {active === "brief" && <StepBrief campaign={campaign} />}
-          {active === "matching" && <StepMatching campaign={campaign} />}
+          {active === "shortlist" && <StepMatching campaign={campaign} />}
           {active === "outreach" && <StepOutreach campaign={campaign} />}
-          {active === "confirm" && <StepConfirm campaign={campaign} />}
-          {active === "contract" && <StepContract campaign={campaign} />}
-          {active === "sample" && <StepSample campaign={campaign} />}
-          {active === "script" && <StepScript campaign={campaign} />}
-          {active === "video" && <StepVideo campaign={campaign} />}
-          {active === "publish" && <StepPublish campaign={campaign} />}
+          {active === "offer" && <StepConfirm campaign={campaign} />}
+          {active === "confirmed" && <StepContract campaign={campaign} />}
+          {active === "draft" && <StepScript campaign={campaign} />}
+          {active === "publication" && <StepPublish campaign={campaign} />}
+          {active === "payment" && <StepPublish campaign={campaign} />}
           {active === "tracking" && <StepTracking campaign={campaign} />}
         </PipelineAdvanceContext.Provider>
       </div>
     </div>
   );
+}
+
+function mapCampaignStep(step: Campaign["step"]): CollaborationStage {
+  if (step === "brief" || step === "matching") return "shortlist";
+  if (step === "outreach") return "outreach";
+  if (step === "confirm") return "offer";
+  if (step === "contract" || step === "sample") return "confirmed";
+  if (step === "script" || step === "video") return "draft";
+  if (step === "publish") return "publication";
+  return "tracking";
 }
