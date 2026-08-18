@@ -50,7 +50,7 @@ export function BusinessSidebar() {
         )}
       >
         <img
-          src="/brand/logo.png"
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/logo.png`}
           alt="CreatiScout"
           className="h-8 w-8 flex-shrink-0 object-contain"
         />

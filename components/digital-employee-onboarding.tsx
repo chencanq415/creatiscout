@@ -194,7 +194,7 @@ export function DigitalEmployeeOnboarding({
   const [saved, setSaved] = useState(false);
   const [demoRequested, setDemoRequested] = useState(false);
   const selectedPlan = plans.find((plan) => plan.id === selected) ?? plans[1];
-  const avatarRoster = "/avatars/digital-employees-roster-female-v1.png";
+  const avatarRoster = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/avatars/digital-employees-roster-female-v1.png`;
 
   useEffect(() => {
     if (modal) return;

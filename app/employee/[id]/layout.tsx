@@ -3,7 +3,13 @@ import { FloatingAsk } from "@/components/floating-ask";
 import { NewTaskDrawer } from "@/components/new-task-drawer";
 import { EmployeeSidebar } from "@/components/sidebar/employee-sidebar";
 import { Topbar } from "@/components/topbar";
-import { getEmployee } from "@/lib/mock/employees";
+import { employees, getEmployee } from "@/lib/mock/employees";
+
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return employees.map((employee) => ({ id: employee.id }));
+}
 
 export default async function EmployeeLayout({
   children,
