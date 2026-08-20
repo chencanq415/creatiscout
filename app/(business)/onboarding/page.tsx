@@ -11,16 +11,16 @@ import {
   Handshake,
   MessageSquareText,
   SearchCheck,
+  Smile,
   Sparkles,
-  Target,
 } from "lucide-react";
 import Link from "next/link";
 
 const L = {
   title: { zh: "快速上手", en: "Onboarding" },
   description: {
-    zh: "完成这些基础设置，让数字员工可以从 Campaign 创建一路协助到达人合作执行。",
-    en: "Complete the essentials so your digital employee can support the full workflow from campaign setup to creator collaboration.",
+    zh: "先雇佣数字员工，再完成 Campaign 创建、达人匹配、合作跟进与效果复盘。",
+    en: "Hire your digital employee, then complete campaign setup, creator matching, collaboration follow-up, and reporting.",
   },
   progress: { zh: "设置进度", en: "Setup progress" },
   completed: { zh: "已完成", en: "Completed" },
@@ -32,8 +32,8 @@ const L = {
     en: "Feels too complex? Let AI set it up for you",
   },
   aiDescription: {
-    zh: "告诉数字员工你的品牌、产品和目标，它会通过对话帮你创建 Campaign、补全达人要求，并生成下一步执行计划。",
-    en: "Tell your digital employee about your brand, product, and goals. It will create the campaign, complete creator requirements, and prepare an action plan through conversation.",
+    zh: "告诉 Plus 数字员工你的品牌、产品和目标，它会通过对话帮你创建 Campaign、匹配达人、自动跟进合作并生成复盘报告。",
+    en: "Tell your Plus digital employee about your brand, product, and goals. It will create the campaign, match creators, follow up on collaborations, and generate a report.",
   },
   aiAction: { zh: "让 AI 帮我开始", en: "Start with AI" },
   trial: { zh: "Plus · 14 天免费试用", en: "Plus · 14-day free trial" },
@@ -45,7 +45,16 @@ const L = {
 
 const stepCopy = [
   {
-    title: { zh: "创建第一个 Campaign", en: "Create your first campaign" },
+    title: { zh: "雇佣数字员工", en: "Hire a digital employee" },
+    description: {
+      zh: "已默认雇佣 Plus 数字员工，新用户可免费使用全部 Plus 能力 14 天。",
+      en: "Plus is hired by default, with all Plus capabilities free for new users for 14 days.",
+    },
+    href: "/employees",
+    icon: Smile,
+  },
+  {
+    title: { zh: "创建 Campaign", en: "Create a campaign" },
     description: {
       zh: "添加品牌、目标、预算、投放平台与达人地区要求。",
       en: "Set the brand, objective, budget, platforms, and creator market requirements.",
@@ -54,16 +63,7 @@ const stepCopy = [
     icon: FilePlus2,
   },
   {
-    title: { zh: "定义目标达人画像", en: "Define your creator profile" },
-    description: {
-      zh: "明确达人品类、内容风格、地区和合作标准，让推荐结果更准确。",
-      en: "Define creator categories, content style, regions, and collaboration criteria.",
-    },
-    href: "/creators?tab=marketplace",
-    icon: Target,
-  },
-  {
-    title: { zh: "运行 AI 智能匹配", en: "Run AI Matching" },
+    title: { zh: "匹配达人", en: "Match creators" },
     description: {
       zh: "让 Plus AI 根据 Campaign 条件生成达人推荐，并建立首批候选名单。",
       en: "Let Plus AI recommend creators from campaign requirements and build a shortlist.",
@@ -72,19 +72,19 @@ const stepCopy = [
     icon: SearchCheck,
   },
   {
-    title: { zh: "开始达人合作", en: "Start creator collaboration" },
+    title: { zh: "AI 自动跟进达人合作", en: "AI follows up on collaborations" },
     description: {
-      zh: "进入建联、报价、合同、内容审核、发布与付款的完整执行流程。",
-      en: "Move through outreach, offers, contracts, content review, publishing, and payment.",
+      zh: "由 AI 推进建联、报价、合同、内容审核、发布与付款，并在需要时提醒你确认。",
+      en: "Let AI advance outreach, offers, contracts, content review, publishing, and payments, asking for approval when needed.",
     },
     href: "/collaborations",
     icon: Handshake,
   },
   {
-    title: { zh: "复盘 Campaign 表现", en: "Review campaign performance" },
+    title: { zh: "生成复盘报告", en: "Generate a performance report" },
     description: {
-      zh: "在 Insight 聚合页查看交付与平台表现，并优化下一轮 Campaign。",
-      en: "Review delivery and platform performance in Insight, then improve the next campaign.",
+      zh: "在 Insight 聚合页生成并查看 Campaign 复盘报告，用结果优化下一轮 Campaign。",
+      en: "Generate and review campaign reports in Insight, then use the results to improve the next campaign.",
     },
     href: "/insights",
     icon: BarChart3,
@@ -94,7 +94,7 @@ const stepCopy = [
 export default function OnboardingPage() {
   const l = useLoc();
   const campaignCount = useUIStore((state) => state.campaigns.length);
-  const completedSteps = new Set(campaignCount > 0 ? [0] : []);
+  const completedSteps = new Set([0, ...(campaignCount > 0 ? [1] : [])]);
   const completedCount = completedSteps.size;
   const percentage = Math.round((completedCount / stepCopy.length) * 100);
 
