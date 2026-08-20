@@ -11,9 +11,13 @@ export const dict = {
   // Sidebar nav
   nav: {
     dashboard: { zh: "总览", en: "Dashboard" },
-    campaigns: { zh: "项目管理", en: "Campaigns" },
-    creators: { zh: "达人发现", en: "Creators" },
+    campaigns: { zh: "营销活动", en: "Campaign" },
+    creators: { zh: "达人管理", en: "Creators" },
     collaborations: { zh: "合作管理", en: "Collaboration" },
+    insights: { zh: "数据洞察", en: "Insight" },
+    aiTools: { zh: "AI 工具", en: "AI Tools" },
+    onboarding: { zh: "快速上手", en: "Onboarding" },
+    onboardingHint: { zh: "5 步完成首次设置", en: "Complete setup in 5 steps" },
     tracking: { zh: "竞品追踪", en: "Tracking" },
     contextLab: { zh: "内容工坊", en: "Context Lab" },
     pool: { zh: "私域达人池", en: "Private Pool" },
@@ -50,6 +54,12 @@ export const dict = {
   // Account menu
   account: {
     free: { zh: "免费版", en: "Free" },
+    plusTrial: { zh: "Plus 试用", en: "Plus Trial" },
+    trialRemaining: {
+      zh: "Plus 免费试用 · 剩余 {days} 天",
+      en: "Plus free trial · {days} days left",
+    },
+    trialExpired: { zh: "Plus 免费试用已结束", en: "Plus free trial ended" },
     creditsUsage: { zh: "Credits 用量", en: "Credits Usage" },
     manage: { zh: "管理", en: "Manage" },
     upgrade: { zh: "升级", en: "Upgrade" },
@@ -102,9 +112,15 @@ export const dict = {
     queueHuman: { zh: "人工审核", en: "Human Review" },
     viewAll: { zh: "查看全部", en: "View all" },
     capacity: { zh: "数字员工产能", en: "Employee Capacity" },
-    capacitySub: { zh: "本周任务承接 / 单员工容量上限", en: "Tasks this week / capacity ceiling" },
+    capacitySub: {
+      zh: "本周任务承接 / 单员工容量上限",
+      en: "Tasks this week / capacity ceiling",
+    },
     roi: { zh: "进行中 Campaign · ROI", en: "Running Campaigns · ROI" },
-    roiSub: { zh: "实时 GMV / 投放成本 · 与昨日对比", en: "Live GMV vs spend · vs yesterday" },
+    roiSub: {
+      zh: "实时 GMV / 投放成本 · 与昨日对比",
+      en: "Live GMV vs spend · vs yesterday",
+    },
   },
   // Mail
   mail: {
@@ -117,7 +133,10 @@ export const dict = {
     myTags: { zh: "我的标签", en: "My Tags" },
     noCustomTags: { zh: "暂无自定义标签", en: "No custom tags" },
     noSessions: { zh: "暂无邮件会话", en: "No email sessions" },
-    selectSession: { zh: "选择一个会话查看详情", en: "Select a session to view details" },
+    selectSession: {
+      zh: "选择一个会话查看详情",
+      en: "Select a session to view details",
+    },
     selectSessionHint: {
       zh: "从左侧列表选择一个邮件会话",
       en: "Select an email session from the list on the left",

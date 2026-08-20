@@ -41,6 +41,7 @@ export function FloatingAsk() {
   return (
     <button
       type="button"
+      data-chat-trigger
       onClick={() => openChat()}
       aria-label={l(L.askAria)}
       title={l(L.askTitle)}

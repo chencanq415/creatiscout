@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CreatorsNav } from "@/components/creators-nav";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { creators } from "@/lib/mock/creators";
 import { useUIStore } from "@/lib/store/ui-store";
@@ -96,26 +97,15 @@ function CreatorsContent() {
 
   return (
     <div className="min-h-full bg-page px-6 py-7 lg:px-8">
-      <div className="mx-auto max-w-[1280px]">
+      <div className="w-full">
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div>
-            <div className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.16em] text-brand"><Sparkles className="h-3.5 w-3.5" />{l(L.eyebrow)}</div>
-            <h1 className="mt-2 text-[30px] font-bold tracking-[-0.03em] text-navy">{l(L.title)}</h1>
+            <h1 className="text-[30px] font-bold tracking-[-0.03em] text-navy">{l(L.title)}</h1>
             <p className="mt-1.5 text-[13px] text-slate">{l(L.subtitle)}</p>
           </div>
         </div>
 
-        <div className="mt-6 flex h-12 items-end border-b border-border">
-          {([
-            { id: "matching", label: l(L.matchingTab) },
-            { id: "marketplace", label: l(L.marketplaceTab) },
-          ] as { id: CreatorTab; label: string }[]).map((tab) => (
-            <Link key={tab.id} href={tab.id === "matching" ? "/creators" : "/creators?tab=marketplace"} className={cn("relative flex h-12 items-center px-5 text-[12.5px] font-semibold transition-colors", activeTab === tab.id ? "text-brand" : "text-slate hover:text-ink")}>
-              {tab.label}
-              <span className={cn("absolute inset-x-3 bottom-0 h-[2px] rounded-full", activeTab === tab.id ? "bg-brand" : "bg-transparent")} />
-            </Link>
-          ))}
-        </div>
+        <CreatorsNav active={activeTab} className="mt-6" />
 
         {showCampaignOverview ? (
           <CampaignMatchesOverview campaigns={campaigns} />

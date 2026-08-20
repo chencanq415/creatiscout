@@ -1,19 +1,13 @@
 "use client";
 
-import {
-  ArrowRight,
-  Check,
-  Coins,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, Check, Coins, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { EMPLOYEE_PLAN_KEY } from "@/lib/account/trial";
 import type { LText } from "@/lib/i18n/dict";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
-
-const PLAN_KEY = "creatiscout.employee.plan.v2";
 
 type PlanId = "free" | "plus" | "pro" | "enterprise";
 
@@ -124,7 +118,10 @@ const plans: Plan[] = [
       { zh: "包含 Plus 的全部搜索与建联能力", en: "Everything in Plus for search and outreach" },
       { zh: "跨市场、跨平台批量匹配达人", en: "Match creators across markets and platforms" },
       { zh: "自动生成 Campaign Insight Reports", en: "Generate campaign insight reports" },
-      { zh: "用历史表现优化下一轮选人策略", en: "Optimize the next shortlist using past performance" },
+      {
+        zh: "用历史表现优化下一轮选人策略",
+        en: "Optimize the next shortlist using past performance",
+      },
     ],
   },
   {
@@ -138,9 +135,18 @@ const plans: Plan[] = [
     price: "Flexible",
     pool: { zh: "全量达人 + 专属数据策略", en: "Full creator pool + dedicated data strategy" },
     features: [
-      { zh: "Campaign 规划、达人搜索与批量建联", en: "Campaign planning, creator search, and outreach" },
-      { zh: "报价沟通、稿件审核与修改推进", en: "Negotiation, draft review, and revision management" },
-      { zh: "发布凭证提交、履约进度与异常处理", en: "Publishing proof, fulfillment tracking, and issue handling" },
+      {
+        zh: "Campaign 规划、达人搜索与批量建联",
+        en: "Campaign planning, creator search, and outreach",
+      },
+      {
+        zh: "报价沟通、稿件审核与修改推进",
+        en: "Negotiation, draft review, and revision management",
+      },
+      {
+        zh: "发布凭证提交、履约进度与异常处理",
+        en: "Publishing proof, fulfillment tracking, and issue handling",
+      },
       { zh: "打款支付、对账与完整交付归档", en: "Payments, reconciliation, and delivery records" },
       { zh: "数据驱动决策与持续营销支持", en: "Data-led decisions and ongoing marketing support" },
     ],
@@ -157,7 +163,7 @@ export function FirstVisitOnboarding() {
 
   useEffect(() => {
     const forcePreview = new URLSearchParams(window.location.search).get("onboarding") === "1";
-    setOpen(forcePreview || !isPlanId(window.localStorage.getItem(PLAN_KEY)));
+    setOpen(forcePreview || !isPlanId(window.localStorage.getItem(EMPLOYEE_PLAN_KEY)));
   }, []);
 
   if (!open) return null;
@@ -198,7 +204,7 @@ export function DigitalEmployeeOnboarding({
 
   useEffect(() => {
     if (modal) return;
-    const stored = window.localStorage.getItem(PLAN_KEY);
+    const stored = window.localStorage.getItem(EMPLOYEE_PLAN_KEY);
     if (isPlanId(stored)) {
       setCurrentPlan(stored);
       setSelected(stored);
@@ -210,7 +216,7 @@ export function DigitalEmployeeOnboarding({
       setDemoRequested(true);
       return;
     }
-    window.localStorage.setItem(PLAN_KEY, selected);
+    window.localStorage.setItem(EMPLOYEE_PLAN_KEY, selected);
     setCurrentPlan(selected);
     if (modal) {
       onComplete?.();
@@ -225,10 +231,12 @@ export function DigitalEmployeeOnboarding({
   return (
     <div className={cn("relative", modal ? "px-6 pb-6 pt-5 lg:px-8 lg:pb-8" : "p-7 lg:p-8")}>
       <header className="max-w-[820px]">
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-soft-pink px-3 py-1.5 text-[10px] font-bold tracking-[0.12em] text-brand">
-          <Sparkles className="h-3 w-3" />
-          {l(modal ? copy.onboardingEyebrow : copy.manageEyebrow)}
-        </div>
+        {modal && (
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-soft-pink px-3 py-1.5 text-[10px] font-bold tracking-[0.12em] text-brand">
+            <Sparkles className="h-3 w-3" />
+            {l(copy.onboardingEyebrow)}
+          </div>
+        )}
         <h1 className="text-[27px] font-bold leading-[1.18] tracking-[-0.025em] text-navy lg:text-[33px]">
           {l(modal ? copy.onboardingTitle : copy.manageTitle)}
         </h1>
@@ -280,18 +288,20 @@ export function DigitalEmployeeOnboarding({
                   <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-teal" />
                 </div>
                 <div className="absolute right-3 top-[62px]">
-                {plan.badge && (
-                  <span className="rounded-full bg-brand px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-white">
-                    {l(plan.badge)}
-                  </span>
-                )}
+                  {plan.badge && (
+                    <span className="rounded-full bg-brand px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-white">
+                      {l(plan.badge)}
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <p className={cn(
-                "mt-4 min-h-[42px] text-[13px] font-semibold leading-[19px]",
-                plan.id === "enterprise" ? "text-teal-text" : "text-ink",
-              )}>
+              <p
+                className={cn(
+                  "mt-4 min-h-[42px] text-[13px] font-semibold leading-[19px]",
+                  plan.id === "enterprise" ? "text-teal-text" : "text-ink",
+                )}
+              >
                 {l(plan.highlight)}
               </p>
 
@@ -300,13 +310,18 @@ export function DigitalEmployeeOnboarding({
                   <span className="tabular text-[22px] font-bold tracking-tight text-navy">
                     {plan.id === "enterprise" ? l(copy.flexible) : plan.price}
                   </span>
-                  {plan.priceSuffix && <span className="ml-1 text-[9.5px] text-muted">{l(plan.priceSuffix)}</span>}
+                  {plan.priceSuffix && (
+                    <span className="ml-1 text-[9.5px] text-muted">{l(plan.priceSuffix)}</span>
+                  )}
                 </div>
               </div>
 
               <ul className="mt-3 flex-1 space-y-2">
                 {plan.features.map((feature) => (
-                  <li key={feature.en} className="flex gap-2 text-[10.5px] leading-[16px] text-slate">
+                  <li
+                    key={feature.en}
+                    className="flex gap-2 text-[10.5px] leading-[16px] text-slate"
+                  >
                     <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-soft-teal text-teal-text">
                       <Check className="h-2.5 w-2.5 stroke-[3]" />
                     </span>
@@ -332,7 +347,9 @@ export function DigitalEmployeeOnboarding({
                     : active
                       ? l(copy.selected)
                       : plan.name}
-                {(active || current) && plan.id !== "enterprise" && <Check className="h-3.5 w-3.5" />}
+                {(active || current) && plan.id !== "enterprise" && (
+                  <Check className="h-3.5 w-3.5" />
+                )}
               </div>
             </button>
           );
@@ -346,9 +363,14 @@ export function DigitalEmployeeOnboarding({
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[13px] font-semibold text-ink">{l(copy.creditTitle)}</div>
-            <p className="mt-0.5 text-[11px] leading-[17px] text-muted">{l(copy.creditDescription)}</p>
+            <p className="mt-0.5 text-[11px] leading-[17px] text-muted">
+              {l(copy.creditDescription)}
+            </p>
           </div>
-          <button type="button" className="flex-shrink-0 text-[11.5px] font-semibold text-brand hover:underline">
+          <button
+            type="button"
+            className="flex-shrink-0 text-[11.5px] font-semibold text-brand hover:underline"
+          >
             {l(copy.topUp)}
           </button>
         </div>
@@ -356,7 +378,11 @@ export function DigitalEmployeeOnboarding({
         <div className="flex min-w-[340px] items-center justify-between gap-5 rounded-[12px] border border-border bg-surface px-4 py-3 shadow-card">
           <div>
             <div className="text-[9.5px] font-semibold uppercase tracking-wider text-muted">
-              {demoRequested ? l(copy.demoRequested) : saved ? l(copy.saved) : l(copy.selectionHint)}
+              {demoRequested
+                ? l(copy.demoRequested)
+                : saved
+                  ? l(copy.saved)
+                  : l(copy.selectionHint)}
             </div>
             <div className="mt-1 flex items-center gap-2 text-[13px] font-semibold text-ink">
               <span

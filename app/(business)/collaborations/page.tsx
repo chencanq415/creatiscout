@@ -73,10 +73,9 @@ export default function CollaborationsPage() {
 
   return (
     <div className="min-h-full bg-page px-6 py-7 lg:px-8">
-      <div className="mx-auto max-w-[1320px]">
+      <div className="w-full">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.16em] text-brand"><Handshake className="h-3.5 w-3.5" />{l(L.eyebrow)}</div>
-          <h1 className="mt-2 text-[30px] font-bold tracking-[-0.03em] text-navy">{l(L.title)}</h1>
+          <h1 className="text-[30px] font-bold tracking-[-0.03em] text-navy">{l(L.title)}</h1>
           <p className="mt-1.5 text-[13px] text-slate">{l(L.subtitle)}</p>
         </div>
 

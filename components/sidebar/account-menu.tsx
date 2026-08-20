@@ -9,7 +9,9 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useState } from "react";
+import { useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { getOrCreatePlusTrial, getTrialDaysRemaining } from "@/lib/account/trial";
 import { useI18nStore } from "@/lib/i18n/use-i18n";
 import { useT } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
@@ -23,6 +25,18 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
   const locale = useI18nStore((s) => s.locale);
   const setLocale = useI18nStore((s) => s.setLocale);
   const [langOpen, setLangOpen] = useState(false);
+  const [trialDays, setTrialDays] = useState(14);
+
+  useEffect(() => {
+    const trial = getOrCreatePlusTrial();
+    if (trial) setTrialDays(getTrialDaysRemaining(trial));
+  }, []);
+
+  const trialLabel =
+    trialDays > 0
+      ? t("account.trialRemaining").replace("{days}", String(trialDays))
+      : t("account.trialExpired");
+  const planLabel = trialDays > 0 ? t("account.plusTrial") : t("account.free");
 
   return (
     <Popover>
@@ -44,15 +58,15 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
             <>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="truncate text-[13px] font-semibold text-ink">Demo Workspace</span>
+                  <span className="truncate text-[13px] font-semibold text-ink">
+                    Demo Workspace
+                  </span>
                   <span className="inline-flex flex-shrink-0 items-center gap-0.5 rounded-full bg-navy/85 px-1.5 py-px text-[10px] font-semibold text-white">
                     <Sparkles className="h-2.5 w-2.5" />
-                    {t("account.free")}
+                    {planLabel}
                   </span>
                 </div>
-                <div className="truncate text-[10.5px] text-muted">
-                  demo@creatiscout.example
-                </div>
+                <div className="truncate text-[10.5px] text-muted">demo@creatiscout.example</div>
               </div>
               <ChevronsUpDown className="h-3.5 w-3.5 flex-shrink-0 text-muted" />
             </>
@@ -73,7 +87,7 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
               <span className="truncate text-[14px] font-bold text-ink">Demo Workspace</span>
               <span className="inline-flex items-center gap-0.5 rounded-full bg-navy/85 px-1.5 py-px text-[10px] font-semibold text-white">
                 <Sparkles className="h-2.5 w-2.5" />
-                {t("account.free")}
+                {planLabel}
               </span>
             </div>
             <div className="truncate text-[11px] text-muted">demo@creatiscout.example</div>
@@ -82,7 +96,14 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
 
         <div className="my-1 h-px bg-border" />
 
-        <MenuItem icon={<Settings className="h-3.5 w-3.5" />} label={t("account.accountSettings")} />
+        <div className="mx-1.5 mb-1.5 rounded-[9px] bg-soft-pink px-3 py-2 text-[11px] font-semibold text-brand">
+          {trialLabel}
+        </div>
+
+        <MenuItem
+          icon={<Settings className="h-3.5 w-3.5" />}
+          label={t("account.accountSettings")}
+        />
         <MenuItem icon={<Bell className="h-3.5 w-3.5" />} label={t("account.messageCenter")} />
 
         {/* Language submenu */}
@@ -124,10 +145,7 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
 
         <div className="my-1 h-px bg-border" />
 
-        <MenuItem
-          icon={<LogOut className="h-3.5 w-3.5" />}
-          label={t("account.logout")}
-        />
+        <MenuItem icon={<LogOut className="h-3.5 w-3.5" />} label={t("account.logout")} />
       </PopoverContent>
     </Popover>
   );

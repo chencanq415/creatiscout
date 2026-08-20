@@ -1,7 +1,7 @@
 import { FloatingAsk } from "@/components/floating-ask";
-import { FirstVisitOnboarding } from "@/components/digital-employee-onboarding";
 import { NewEmailDrawer } from "@/components/new-email-drawer";
 import { NewTaskDrawer } from "@/components/new-task-drawer";
+import { PlusTrialInitializer } from "@/components/plus-trial-initializer";
 import { ShareSubmissionDialog } from "@/components/share-submission-dialog";
 import { BusinessSidebar } from "@/components/sidebar/business-sidebar";
 import { Topbar } from "@/components/topbar";
@@ -20,7 +20,7 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
       <NewEmailDrawer />
       <ShareSubmissionDialog />
       <FloatingAsk />
-      <FirstVisitOnboarding />
+      <PlusTrialInitializer />
     </div>
   );
 }

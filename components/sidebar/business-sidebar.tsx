@@ -1,36 +1,37 @@
 "use client";
-import {
-  Binoculars,
-  FileText,
-  FlaskConical,
-  Mail,
-  Search,
-  Handshake,
-  Plus,
-  Smile,
-  Users,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useT } from "@/lib/i18n/use-i18n";
 import { useUIStore } from "@/lib/store/ui-store";
 import { cn } from "@/lib/utils";
+import {
+  ChartNoAxesCombined,
+  FileText,
+  Handshake,
+  Rocket,
+  Search,
+  Smile,
+  Sparkles,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AccountMenu } from "./account-menu";
 
 const navItems = [
   { href: "/campaigns", labelKey: "nav.campaigns", icon: FileText },
   { href: "/creators", labelKey: "nav.creators", icon: Search },
   { href: "/collaborations", labelKey: "nav.collaborations", icon: Handshake },
-  { href: "/tracking", labelKey: "nav.tracking", icon: Binoculars },
-  { href: "/context-lab", labelKey: "nav.contextLab", icon: FlaskConical },
-  { href: "/pool", labelKey: "nav.pool", icon: Users },
-  { href: "/mail", labelKey: "nav.mail", icon: Mail, badge: 2 },
+  { href: "/insights", labelKey: "nav.insights", icon: ChartNoAxesCombined },
+  { href: "/ai-tools", labelKey: "nav.aiTools", icon: Sparkles },
+  {
+    href: "/employees",
+    labelKey: "nav.employees",
+    icon: Smile,
+    employee: true,
+  },
 ];
 
 export function BusinessSidebar() {
   const pathname = usePathname();
   const t = useT();
-  const openChat = useUIStore((s) => s.openChat);
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const expanded = !collapsed;
 
@@ -61,34 +62,18 @@ export function BusinessSidebar() {
         )}
       </Link>
 
-      {/* New Task CTA */}
-      <div className={cn("pb-2 pt-1", expanded ? "px-2.5" : "px-2")}>
-        <Tooltip label={t("common.newTask")} disabled={expanded}>
-          <button
-            type="button"
-            onClick={() => openChat()}
-            aria-label={t("common.newTask")}
-            className={cn(
-              "flex w-full items-center rounded-md bg-brand text-white shadow-cta transition-colors hover:bg-brand-hover",
-              expanded ? "h-8 gap-2 px-3" : "h-8 justify-center",
-            )}
-          >
-            <Plus className="h-3.5 w-3.5 flex-shrink-0" />
-            {expanded && (
-              <span className="whitespace-nowrap text-[12.5px] font-medium">
-                {t("common.newTask")}
-              </span>
-            )}
-          </button>
-        </Tooltip>
-      </div>
-
       {/* Nav */}
       <nav className="flex flex-1 flex-col space-y-0.5 px-2 py-2">
         {navItems.map((item) => {
-          const active =
-            pathname === item.href ||
-            pathname.startsWith(`${item.href}/`);
+          const active = item.employee
+            ? pathname.startsWith("/employees") || pathname.startsWith("/employee")
+            : item.href === "/creators"
+              ? pathname.startsWith("/creators") || pathname.startsWith("/pool")
+              : item.href === "/ai-tools"
+                ? pathname.startsWith("/ai-tools") ||
+                  pathname.startsWith("/tracking") ||
+                  pathname.startsWith("/context-lab")
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           return (
             <NavLink
@@ -98,23 +83,41 @@ export function BusinessSidebar() {
               label={t(item.labelKey)}
               active={active}
               expanded={expanded}
-              badge={item.badge}
+              dot={item.employee}
             />
           );
         })}
-
-        <div className="mt-auto pt-4">
-          <div className="mb-2 border-t border-border" />
-          <NavLink
-            href="/employees"
-            icon={<Smile className="h-[18px] w-[18px] flex-shrink-0" />}
-            label={t("nav.employees")}
-            active={pathname.startsWith("/employees") || pathname.startsWith("/employee")}
-            expanded={expanded}
-            dot
-          />
-        </div>
       </nav>
+
+      {/* Onboarding — separate from the main navigation */}
+      <div className={cn("border-t border-border", expanded ? "px-2.5 py-2.5" : "px-2 py-2.5")}>
+        <Tooltip label={t("nav.onboarding")} disabled={expanded}>
+          <Link
+            href="/onboarding"
+            className={cn(
+              "group flex min-h-10 w-full items-center rounded-[10px] border transition-all",
+              expanded ? "gap-2.5 px-2.5 py-2" : "h-10 justify-center px-0",
+              pathname.startsWith("/onboarding")
+                ? "border-brand/25 bg-soft-pink text-brand"
+                : "border-border bg-surface text-slate hover:border-border-strong hover:text-ink",
+            )}
+          >
+            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[7px] bg-[linear-gradient(135deg,#fff0f5,#e8f6f4)] text-brand">
+              <Rocket className="h-3.5 w-3.5" />
+            </span>
+            {expanded && (
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-[11.5px] font-semibold">
+                  {t("nav.onboarding")}
+                </span>
+                <span className="mt-0.5 block text-[8.5px] text-muted">
+                  {t("nav.onboardingHint")}
+                </span>
+              </span>
+            )}
+          </Link>
+        </Tooltip>
+      </div>
 
       {/* Bottom — Account menu */}
       <div className={cn("border-t border-border", expanded ? "p-2.5" : "p-2")}>

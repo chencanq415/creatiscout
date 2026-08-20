@@ -1,8 +1,4 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronDown, GripVertical, Paperclip, Send, Sparkles, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +10,10 @@ import { employees } from "@/lib/mock/employees";
 import { useUIStore } from "@/lib/store/ui-store";
 import type { Campaign, ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, ChevronDown, GripVertical, Paperclip, Send, Sparkles, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const L = {
   seedWithContext: {
@@ -56,6 +56,11 @@ const L = {
     zh: "Enter 发送 · Shift+Enter 换行 · 关闭后会保存到 {name} 的对话任务",
     en: "Enter to send · Shift+Enter for a new line · Saved to {name}'s chat tasks on close",
   },
+  addAttachment: { zh: "添加图片或文件", en: "Add images or files" },
+  attachmentOnlyPrompt: {
+    zh: "请根据这些素材创建一个 Campaign",
+    en: "Create a campaign from these materials",
+  },
   campaignCreated: { zh: "已创建 Campaign", en: "Campaign Created" },
   openDetails: { zh: "点击打开详情 →", en: "Open details →" },
 } as const;
@@ -90,9 +95,11 @@ export function NewTaskDrawer() {
   const router = useRouter();
   const l = useLoc();
   const [input, setInput] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [typing, setTyping] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startResize = useCallback(
     (e: React.MouseEvent) => {
@@ -148,8 +155,12 @@ export function NewTaskDrawer() {
   }, [messages, typing]);
 
   function handleSend() {
-    const text = input.trim();
-    if (!text) return;
+    const prompt = input.trim();
+    if (!prompt && attachments.length === 0) return;
+    const attachmentLine = attachments.length
+      ? `\n📎 ${attachments.map((file) => file.name).join(" · ")}`
+      : "";
+    const text = `${prompt || l(L.attachmentOnlyPrompt)}${attachmentLine}`;
     const userMsg: ChatMessage = {
       id: genId(),
       role: "user",
@@ -158,6 +169,7 @@ export function NewTaskDrawer() {
     };
     pushMessage(userMsg);
     setInput("");
+    setAttachments([]);
     setTyping(true);
 
     // Scripted mock employee response
@@ -166,9 +178,7 @@ export function NewTaskDrawer() {
       if (isCampaignAsk) {
         const newId = `cmp-${genId()}`;
         const extracted = extractName(text);
-        const campaignName = extracted
-          ? { zh: extracted, en: extracted }
-          : L.newCampaignFallback;
+        const campaignName = extracted ? { zh: extracted, en: extracted } : L.newCampaignFallback;
         const newCampaign: Campaign = {
           id: newId,
           name: campaignName,
@@ -188,7 +198,12 @@ export function NewTaskDrawer() {
           platforms: ["RedNote"],
           briefSummary: { zh: text, en: text },
           compensation: {
-            flatFee: { currency: "CNY", minFee: 0, maxFee: 0, totalBudget: extractBudget(text) ?? 30000 },
+            flatFee: {
+              currency: "CNY",
+              minFee: 0,
+              maxFee: 0,
+              totalBudget: extractBudget(text) ?? 30000,
+            },
             freeProducts: [],
           },
           creatorRequirements: {
@@ -250,9 +265,7 @@ export function NewTaskDrawer() {
           animate={{ width: chatPanelWidth, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={
-            isResizing
-              ? { duration: 0 }
-              : { type: "spring", damping: 30, stiffness: 260 }
+            isResizing ? { duration: 0 } : { type: "spring", damping: 30, stiffness: 260 }
           }
           className="relative flex flex-shrink-0 flex-col self-stretch overflow-hidden rounded-panel bg-surface shadow-panel"
         >
@@ -276,143 +289,179 @@ export function NewTaskDrawer() {
               <GripVertical className="h-3.5 w-3.5" />
             </span>
           </button>
-          <div
-            className="flex h-full min-h-0 flex-col"
-            style={{ width: chatPanelWidth }}
-          >
-          {/* Header */}
-          <div className="flex h-14 items-center gap-2 border-b border-border bg-surface px-4">
-            <img
-              src={activeEmployee.avatar}
-              alt=""
-              className="h-7 w-7 flex-shrink-0 rounded-full"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[14px] font-semibold tracking-tight text-ink">
-                {chatCampaignContext ? l(L.askEmployeeTitle) : activeEmployee.name}
-              </div>
-              {chatCampaignContext ? (
-                <div className="flex items-center gap-1 text-[11px] text-brand">
-                  <Sparkles className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">{chatCampaignContext.name}</span>
-                </div>
-              ) : (
-                <div className="truncate text-[11px] text-muted">{l(activeEmployee.role)}</div>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={resetChat}
-              className="text-[12px] text-slate transition-colors hover:text-ink"
-            >
-              {l(L.clear)}
-            </button>
-            <button
-              type="button"
-              onClick={closeChat}
-              aria-label={l(L.closeChat)}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-slate transition-colors hover:bg-surface-warm hover:text-ink"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Employee picker */}
-          <div className="flex items-center gap-2 border-b border-border bg-surface-warm px-4 py-2">
-            <span className="text-[11px] text-muted">{l(L.assignTo)}</span>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-[12px] hover:border-border-strong"
-                >
-                  <img src={activeEmployee.avatar} alt="" className="h-4 w-4 rounded-full" />
-                  <span className="font-medium text-ink">{activeEmployee.name}</span>
-                  <ChevronDown className="h-3 w-3 text-muted" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {employees.map((e) => (
-                  <DropdownMenuItem
-                    key={e.id}
-                    onClick={() => {
-                      setActiveEmployee(e.id);
-                      resetChat();
-                    }}
-                  >
-                    <img src={e.avatar} alt="" className="h-5 w-5 rounded-full" />
-                    <div className="flex-1">
-                      <div className="text-[13px] font-medium text-ink">{e.name}</div>
-                      <div className="text-[11px] text-muted">{l(e.role)}</div>
-                    </div>
-                    {e.id === activeEmployee.id && <Check className="h-3.5 w-3.5 text-brand" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
-            <div className="space-y-4">
-              {messages.map((m) => (
-                <MessageBubble
-                  key={m.id}
-                  msg={m}
-                  employeeAvatar={activeEmployee.avatar}
-                  onCardClick={handleCardClick}
-                />
-              ))}
-              {typing && (
-                <div className="flex items-center gap-2 text-[12px] text-muted">
-                  <Sparkles className="h-3.5 w-3.5 text-brand" />
-                  <span>{fill(l(L.thinking), { name: activeEmployee.name })}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Input */}
-          <div className="border-t border-border bg-surface p-3">
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              <QuickPrompt text={l(L.quickPrompt1)} onPick={setInput} />
-              <QuickPrompt text={l(L.quickPrompt2)} onPick={setInput} />
-            </div>
-            <div className="flex items-end gap-2 rounded-[12px] border border-border bg-surface p-2">
-              <button type="button" className="rounded-full p-1.5 text-muted hover:bg-page">
-                <Paperclip className="h-4 w-4" />
-              </button>
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder={l(L.inputPlaceholder)}
-                rows={2}
-                className="flex-1 resize-none border-0 bg-transparent text-[13px] leading-relaxed text-ink outline-none placeholder:text-muted"
+          <div className="flex h-full min-h-0 flex-col" style={{ width: chatPanelWidth }}>
+            {/* Header */}
+            <div className="flex h-14 items-center gap-2 border-b border-border bg-surface px-4">
+              <img
+                src={activeEmployee.avatar}
+                alt=""
+                className="h-7 w-7 flex-shrink-0 rounded-full"
               />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[14px] font-semibold tracking-tight text-ink">
+                  {chatCampaignContext ? l(L.askEmployeeTitle) : activeEmployee.name}
+                </div>
+                {chatCampaignContext ? (
+                  <div className="flex items-center gap-1 text-[11px] text-brand">
+                    <Sparkles className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{chatCampaignContext.name}</span>
+                  </div>
+                ) : (
+                  <div className="truncate text-[11px] text-muted">{l(activeEmployee.role)}</div>
+                )}
+              </div>
               <button
                 type="button"
-                onClick={handleSend}
-                disabled={!input.trim()}
-                className={cn(
-                  "rounded-[8px] p-2 transition-colors",
-                  input.trim()
-                    ? "bg-brand text-white shadow-cta hover:bg-brand-hover"
-                    : "bg-surface-warm text-muted",
-                )}
+                onClick={resetChat}
+                className="text-[12px] text-slate transition-colors hover:text-ink"
               >
-                <Send className="h-4 w-4" />
+                {l(L.clear)}
+              </button>
+              <button
+                type="button"
+                onClick={closeChat}
+                aria-label={l(L.closeChat)}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-slate transition-colors hover:bg-surface-warm hover:text-ink"
+              >
+                <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="mt-1.5 px-1 text-[10.5px] text-muted">
-              {fill(l(L.inputHint), { name: activeEmployee.name })}
+
+            {/* Employee picker */}
+            <div className="flex items-center gap-2 border-b border-border bg-surface-warm px-4 py-2">
+              <span className="text-[11px] text-muted">{l(L.assignTo)}</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-[12px] hover:border-border-strong"
+                  >
+                    <img src={activeEmployee.avatar} alt="" className="h-4 w-4 rounded-full" />
+                    <span className="font-medium text-ink">{activeEmployee.name}</span>
+                    <ChevronDown className="h-3 w-3 text-muted" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {employees.map((e) => (
+                    <DropdownMenuItem
+                      key={e.id}
+                      onClick={() => {
+                        setActiveEmployee(e.id);
+                        resetChat();
+                      }}
+                    >
+                      <img src={e.avatar} alt="" className="h-5 w-5 rounded-full" />
+                      <div className="flex-1">
+                        <div className="text-[13px] font-medium text-ink">{e.name}</div>
+                        <div className="text-[11px] text-muted">{l(e.role)}</div>
+                      </div>
+                      {e.id === activeEmployee.id && <Check className="h-3.5 w-3.5 text-brand" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </div>
+
+            {/* Messages */}
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
+              <div className="space-y-4">
+                {messages.map((m) => (
+                  <MessageBubble
+                    key={m.id}
+                    msg={m}
+                    employeeAvatar={activeEmployee.avatar}
+                    onCardClick={handleCardClick}
+                  />
+                ))}
+                {typing && (
+                  <div className="flex items-center gap-2 text-[12px] text-muted">
+                    <Sparkles className="h-3.5 w-3.5 text-brand" />
+                    <span>{fill(l(L.thinking), { name: activeEmployee.name })}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Input */}
+            <div className="border-t border-border bg-surface p-3">
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                <QuickPrompt text={l(L.quickPrompt1)} onPick={setInput} />
+                <QuickPrompt text={l(L.quickPrompt2)} onPick={setInput} />
+              </div>
+              {attachments.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {attachments.map((file, index) => (
+                    <span
+                      key={`${file.name}-${file.size}-${index}`}
+                      className="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-surface-warm px-2 py-1 text-[9.5px] text-slate"
+                    >
+                      <Paperclip className="h-3 w-3 flex-shrink-0 text-brand" />
+                      <span className="max-w-[180px] truncate">{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAttachments(attachments.filter((_, itemIndex) => itemIndex !== index))
+                        }
+                        className="rounded-full p-0.5 hover:bg-white"
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-end gap-2 rounded-[12px] border border-border bg-surface p-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  aria-label={l(L.addAttachment)}
+                  className="rounded-full p-1.5 text-muted hover:bg-page"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt"
+                  className="hidden"
+                  onChange={(event) => {
+                    setAttachments(Array.from(event.target.files ?? []));
+                    event.target.value = "";
+                  }}
+                />
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  placeholder={l(L.inputPlaceholder)}
+                  rows={2}
+                  className="flex-1 resize-none border-0 bg-transparent text-[13px] leading-relaxed text-ink outline-none placeholder:text-muted"
+                />
+                <button
+                  type="button"
+                  onClick={handleSend}
+                  disabled={!input.trim() && attachments.length === 0}
+                  className={cn(
+                    "rounded-[8px] p-2 transition-colors",
+                    input.trim() || attachments.length
+                      ? "bg-brand text-white shadow-cta hover:bg-brand-hover"
+                      : "bg-surface-warm text-muted",
+                  )}
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="mt-1.5 px-1 text-[10.5px] text-muted">
+                {fill(l(L.inputHint), { name: activeEmployee.name })}
+              </div>
+            </div>
           </div>
         </motion.aside>
       )}
@@ -466,7 +515,9 @@ function MessageBubble({
           >
             <div className="flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5 text-brand" />
-              <span className="text-[12px] font-medium text-brand-strong">{l(L.campaignCreated)}</span>
+              <span className="text-[12px] font-medium text-brand-strong">
+                {l(L.campaignCreated)}
+              </span>
             </div>
             <div className="mt-1 text-[14px] font-semibold text-ink">{msg.card.title}</div>
             <div className="text-[12px] text-slate">{msg.card.summary}</div>
@@ -479,7 +530,9 @@ function MessageBubble({
 }
 
 function extractName(text: string): string | null {
-  const m = text.match(/(?:建|创建|新建)(?:一?个)?「?([^「」,。\n]{1,20}?)」?(?:[活动campaign项目]|$)/);
+  const m = text.match(
+    /(?:建|创建|新建)(?:一?个)?「?([^「」,。\n]{1,20}?)」?(?:[活动campaign项目]|$)/,
+  );
   if (m) return m[1].trim();
   const m3 = text.match(/(?:create|build|launch|start)\s+(?:a|an|the)?\s*(.{1,40}?)\s*campaign/i);
   if (m3 && m3[1].trim()) return m3[1].trim();
@@ -489,8 +542,9 @@ function extractName(text: string): string | null {
 }
 
 function extractBudget(text: string): number | null {
-  const m = text.match(/(?:预算|budget)[^0-9¥$]*[¥$]?\s*([0-9.]+)\s*(万|w|k)?/i)
-    ?? text.match(/[¥$]\s*([0-9.]+)\s*(万|w|k)?\s*(?:budget|预算)/i);
+  const m =
+    text.match(/(?:预算|budget)[^0-9¥$]*[¥$]?\s*([0-9.]+)\s*(万|w|k)?/i) ??
+    text.match(/[¥$]\s*([0-9.]+)\s*(万|w|k)?\s*(?:budget|预算)/i);
   if (!m) return null;
   const n = Number.parseFloat(m[1]);
   const unit = (m[2] ?? "").toLowerCase();
