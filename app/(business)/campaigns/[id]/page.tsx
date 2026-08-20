@@ -1,162 +1,54 @@
 "use client";
-import {
-  Bot,
-  Check,
-  ChevronLeft,
-  MoreHorizontal,
-  Sparkles,
-  UserCog,
-} from "lucide-react";
+import { Check, ChevronLeft, Mail, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { CampaignInfoPanel } from "@/components/campaign-drawer/info-panel";
 import { CampaignPipeline } from "@/components/campaign-drawer/pipeline";
 import { CampaignPerformanceInsight } from "@/components/campaign-drawer/performance-insight";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown";
-import { useT, useLoc } from "@/lib/i18n/use-i18n";
+import { Switch } from "@/components/ui/switch";
+import { useLoc } from "@/lib/i18n/use-i18n";
 import { useUIStore } from "@/lib/store/ui-store";
 import type { Campaign } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const L = {
-  more: { zh: "更多", en: "More" },
+  back: { zh: "返回 Campaign", en: "Back to campaigns" },
   campaignDetails: { zh: "Campaign 详情", en: "Campaign Details" },
   collaboration: { zh: "合作进度", en: "Collaboration" },
   performanceInsight: { zh: "效果洞察", en: "Performance Insight" },
+  aiWorkflow: { zh: "AI 工作流", en: "AI Workflow" },
 } as const;
 
-type DetailTab = "details" | "collaboration" | "performance";
-
-type AutomationMode = NonNullable<Campaign["automation"]>;
-
-const automationKeys: Record<
-  AutomationMode,
-  { labelKey: string; descKey: string; icon: React.ComponentType<{ className?: string }> }
-> = {
-  full: {
-    labelKey: "automation.full",
-    descKey: "automation.fullDesc",
-    icon: Sparkles,
-  },
-  semi: {
-    labelKey: "automation.semi",
-    descKey: "automation.semiDesc",
-    icon: Bot,
-  },
-  manual: {
-    labelKey: "automation.manual",
-    descKey: "automation.manualDesc",
-    icon: UserCog,
-  },
-};
+type DetailTab = "details" | "collaboration" | "performance" | "workflow";
 
 export default function CampaignDetailPage() {
   const params = useParams<{ id: string }>();
-  const t = useT();
   const l = useLoc();
   const campaign = useUIStore((s) => s.campaigns.find((c) => c.id === params.id));
   const updateCampaign = useUIStore((s) => s.updateCampaign);
   const [activeTab, setActiveTab] = useState<DetailTab>("details");
   if (!campaign) return notFound();
 
-  const automation = campaign.automation ?? "full";
-  const autoMeta = automationKeys[automation];
-
   return (
     <div className="flex h-[calc(100vh-60px)] min-h-0 flex-col bg-page">
-      {/* Sticky header */}
-      <div className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-surface px-6">
+      <div className="flex h-12 flex-shrink-0 items-end border-b border-border bg-surface px-6">
         <Link
           href="/campaigns"
-          className="flex flex-shrink-0 items-center gap-1 rounded-[8px] px-2 py-1.5 text-[12px] text-slate transition-colors hover:bg-surface-warm hover:text-ink"
+          aria-label={l(L.back)}
+          title={l(L.back)}
+          className="mb-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-slate transition-colors hover:bg-surface-warm hover:text-ink"
         >
           <ChevronLeft className="h-4 w-4" />
-          Campaigns
         </Link>
-        <div className="h-5 w-px flex-shrink-0 bg-border" />
-        <h2 className="truncate text-[15px] font-semibold tracking-tight text-ink">
-          {l(campaign.name)}
-        </h2>
-        <StatusBadge status={campaign.status} />
-        <div className="ml-auto flex flex-shrink-0 items-center gap-2">
-          {/* Automation mode indicator — defaults to Full Auto */}
-          <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-2.5 py-1">
-            <span className="relative inline-flex h-1.5 w-1.5">
-              <span className="absolute inset-0 animate-ping rounded-full bg-teal/60" />
-              <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-teal" />
-            </span>
-            <span className="text-[11.5px] font-medium text-teal-text">
-              {t(autoMeta.labelKey)}
-            </span>
-          </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label={l(L.more)}
-                className="flex h-8 w-8 items-center justify-center rounded-[8px] text-slate transition-colors hover:bg-surface-warm hover:text-ink"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={6} className="w-[280px]">
-              <div className="px-3 pb-1.5 pt-2 text-[10.5px] font-semibold uppercase tracking-wider text-muted">
-                {t("automation.label")}
-              </div>
-              {(Object.keys(automationKeys) as AutomationMode[]).map((m) => {
-                const meta = automationKeys[m];
-                const Icon = meta.icon;
-                const active = automation === m;
-                return (
-                  <DropdownMenuItem
-                    key={m}
-                    onClick={() => updateCampaign(campaign.id, { automation: m })}
-                    className="flex items-start gap-2.5 px-3 py-2.5"
-                  >
-                    <div
-                      className={cn(
-                        "mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[8px]",
-                        active ? "bg-soft-teal text-teal-text" : "bg-surface-warm text-slate",
-                      )}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[13px] font-medium text-ink">{t(meta.labelKey)}</span>
-                        {active && <Check className="h-3.5 w-3.5 text-teal-text" strokeWidth={3} />}
-                      </div>
-                      <div className="mt-0.5 text-[11px] leading-snug text-muted">
-                        {t(meta.descKey)}
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                );
-              })}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-slate">{t("automation.viewLogs")}</DropdownMenuItem>
-              <DropdownMenuItem className="text-slate">{t("automation.exportReport")}</DropdownMenuItem>
-              <DropdownMenuItem className="text-amber-text">{t("automation.archive")}</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      <div className="flex h-12 flex-shrink-0 items-end border-b border-border bg-surface px-6">
-        {([
-          { id: "details", label: l(L.campaignDetails) },
-          { id: "collaboration", label: l(L.collaboration) },
-          { id: "performance", label: l(L.performanceInsight) },
-        ] as { id: DetailTab; label: string }[]).map((tab) => (
+        {(
+          [
+            { id: "details", label: l(L.campaignDetails) },
+            { id: "collaboration", label: l(L.collaboration), count: campaign.collaborating },
+            { id: "performance", label: l(L.performanceInsight) },
+            { id: "workflow", label: l(L.aiWorkflow) },
+          ] as { id: DetailTab; label: string; count?: number }[]
+        ).map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -166,8 +58,25 @@ export default function CampaignDetailPage() {
               activeTab === tab.id ? "text-brand" : "text-slate hover:text-ink",
             )}
           >
-            {tab.label}
-            <span className={cn("absolute inset-x-3 bottom-0 h-[2px] rounded-full", activeTab === tab.id ? "bg-brand" : "bg-transparent")} />
+            <span className="inline-flex items-center gap-2">
+              {tab.label}
+              {typeof tab.count === "number" && (
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 py-0.5 text-[9.5px] font-semibold tabular",
+                    activeTab === tab.id ? "bg-soft-pink text-brand" : "bg-surface-warm text-muted",
+                  )}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </span>
+            <span
+              className={cn(
+                "absolute inset-x-3 bottom-0 h-[2px] rounded-full",
+                activeTab === tab.id ? "bg-brand" : "bg-transparent",
+              )}
+            />
           </button>
         ))}
       </div>
@@ -184,22 +93,195 @@ export default function CampaignDetailPage() {
             <CampaignPerformanceInsight campaign={campaign} />
           </div>
         )}
+        {activeTab === "workflow" && (
+          <div className="h-full overflow-y-auto bg-page p-6 lg:p-8">
+            <CampaignAIWorkflow campaign={campaign} onUpdate={updateCampaign} />
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: Campaign["status"] }) {
+type EmailTemplateKey = keyof NonNullable<Campaign["aiWorkflow"]>["emailTemplates"];
+
+const workflowCopy = {
+  title: { zh: "AI 工作流", en: "AI Workflow" },
+  description: {
+    zh: "控制 AI 是否自动跟进达人，并配置不同阶段使用的邮件模板。",
+    en: "Control AI follow-ups and configure the email templates used at each stage.",
+  },
+  autoFollowUp: { zh: "AI 自动跟进", en: "AI auto follow-up" },
+  autoFollowUpOn: {
+    zh: "已开启。AI 会按合作阶段自动发送邮件，并在需要你确认时提醒你。",
+    en: "On. AI sends emails by collaboration stage and asks for approval when needed.",
+  },
+  autoFollowUpOff: {
+    zh: "已关闭。所有达人跟进将由你手动发起。",
+    en: "Off. All creator follow-ups must be started manually.",
+  },
+  templateTitle: { zh: "邮件模板配置", en: "Email templates" },
+  templateDescription: {
+    zh: "AI 会根据达人和 Campaign 信息自动替换变量。修改内容会自动保存。",
+    en: "AI replaces variables with creator and campaign data. Changes save automatically.",
+  },
+  outreach: { zh: "首次建联", en: "Initial outreach" },
+  followUp: { zh: "合作跟进", en: "Follow-up" },
+  finalReminder: { zh: "最后提醒", en: "Final reminder" },
+  saved: { zh: "已自动保存", en: "Saved automatically" },
+  variables: { zh: "可用变量", en: "Available variables" },
+} as const;
+
+function CampaignAIWorkflow({
+  campaign,
+  onUpdate,
+}: {
+  campaign: Campaign;
+  onUpdate: (id: string, patch: Partial<Campaign>) => void;
+}) {
   const l = useLoc();
-  const map: Record<
-    Campaign["status"],
-    { tone: "teal" | "blue" | "amber" | "gray" | "pink"; label: { zh: string; en: string } }
-  > = {
-    draft: { tone: "gray", label: { zh: "草稿", en: "Draft" } },
-    active: { tone: "teal", label: { zh: "进行中", en: "Active" } },
-    paused: { tone: "amber", label: { zh: "已暂停", en: "Paused" } },
-    closed: { tone: "blue", label: { zh: "已结束", en: "Closed" } },
+  const [activeTemplate, setActiveTemplate] = useState<EmailTemplateKey>("outreach");
+  const defaults: Record<EmailTemplateKey, string> = {
+    outreach: l({
+      zh: "Hi {{creator_name}}，我们正在为 {{campaign_name}} 寻找合适的内容创作者。你的内容风格与品牌非常契合，想邀请你了解这次合作。",
+      en: "Hi {{creator_name}}, we're looking for creators for {{campaign_name}}. Your content feels like a strong fit for the brand, and we'd love to discuss a collaboration.",
+    }),
+    followUp: l({
+      zh: "Hi {{creator_name}}，想跟进一下之前发送的 {{campaign_name}} 合作邀请。如果你有兴趣，我可以马上把 Brief 和合作条件发给你。",
+      en: "Hi {{creator_name}}, just following up on our invitation for {{campaign_name}}. If you're interested, I can send the brief and collaboration terms right away.",
+    }),
+    finalReminder: l({
+      zh: "Hi {{creator_name}}，这是关于 {{campaign_name}} 的最后一次跟进。如果时间不合适也没关系，期待之后有机会合作。",
+      en: "Hi {{creator_name}}, this is our final follow-up for {{campaign_name}}. No worries if the timing isn't right—we'd love to work together in the future.",
+    }),
   };
-  const m = map[status];
-  return <Badge tone={m.tone}>{l(m.label)}</Badge>;
+  const workflow = campaign.aiWorkflow ?? {
+    autoFollowUp: campaign.automation !== "manual",
+    emailTemplates: defaults,
+  };
+  const templates = [
+    { id: "outreach" as const, label: l(workflowCopy.outreach) },
+    { id: "followUp" as const, label: l(workflowCopy.followUp) },
+    { id: "finalReminder" as const, label: l(workflowCopy.finalReminder) },
+  ];
+
+  const updateWorkflow = (patch: Partial<NonNullable<Campaign["aiWorkflow"]>>) => {
+    onUpdate(campaign.id, {
+      aiWorkflow: {
+        ...workflow,
+        ...patch,
+        emailTemplates: patch.emailTemplates ?? workflow.emailTemplates,
+      },
+    });
+  };
+
+  return (
+    <div className="mx-auto w-full max-w-[980px]">
+      <div>
+        <h3 className="text-[20px] font-bold tracking-[-0.02em] text-navy">
+          {l(workflowCopy.title)}
+        </h3>
+        <p className="mt-1 text-[11.5px] text-slate">{l(workflowCopy.description)}</p>
+      </div>
+
+      <section className="mt-5 rounded-[14px] border border-border bg-surface p-5 shadow-card">
+        <div className="flex items-start gap-4">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[11px] bg-soft-teal text-teal-text">
+            <Sparkles className="h-4.5 w-4.5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="text-[13px] font-semibold text-ink">{l(workflowCopy.autoFollowUp)}</div>
+            <p className="mt-1 text-[10.5px] leading-[17px] text-muted">
+              {l(
+                workflow.autoFollowUp ? workflowCopy.autoFollowUpOn : workflowCopy.autoFollowUpOff,
+              )}
+            </p>
+          </div>
+          <Switch
+            checked={workflow.autoFollowUp}
+            onCheckedChange={(checked) => {
+              updateWorkflow({ autoFollowUp: checked });
+              onUpdate(campaign.id, { automation: checked ? "full" : "manual" });
+            }}
+            aria-label={l(workflowCopy.autoFollowUp)}
+          />
+        </div>
+      </section>
+
+      <section className="mt-4 overflow-hidden rounded-[14px] border border-border bg-surface shadow-card">
+        <div className="flex items-start gap-3 border-b border-border px-5 py-5">
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] bg-soft-pink text-brand">
+            <Mail className="h-4 w-4" />
+          </span>
+          <div>
+            <h3 className="text-[14px] font-semibold text-navy">{l(workflowCopy.templateTitle)}</h3>
+            <p className="mt-1 text-[10.5px] text-muted">{l(workflowCopy.templateDescription)}</p>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-[210px_1fr]">
+          <div className="border-b border-border p-3 lg:border-b-0 lg:border-r">
+            {templates.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => setActiveTemplate(template.id)}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-[9px] px-3 py-2.5 text-left text-[11.5px] font-medium transition-colors",
+                  activeTemplate === template.id
+                    ? "bg-soft-pink text-brand"
+                    : "text-slate hover:bg-surface-warm hover:text-ink",
+                )}
+              >
+                {template.label}
+                {activeTemplate === template.id && <Check className="h-3.5 w-3.5" />}
+              </button>
+            ))}
+          </div>
+
+          <div className="p-5">
+            <div className="flex items-center justify-between gap-3">
+              <label
+                htmlFor={`template-${activeTemplate}`}
+                className="text-[12px] font-semibold text-ink"
+              >
+                {templates.find((template) => template.id === activeTemplate)?.label}
+              </label>
+              <span className="inline-flex items-center gap-1 text-[9.5px] font-medium text-teal-text">
+                <Check className="h-3 w-3" />
+                {l(workflowCopy.saved)}
+              </span>
+            </div>
+            <textarea
+              id={`template-${activeTemplate}`}
+              value={workflow.emailTemplates[activeTemplate]}
+              onChange={(event) =>
+                updateWorkflow({
+                  emailTemplates: {
+                    ...workflow.emailTemplates,
+                    [activeTemplate]: event.target.value,
+                  },
+                })
+              }
+              rows={7}
+              className="mt-3 w-full resize-y rounded-[10px] border border-border bg-page px-3.5 py-3 text-[11.5px] leading-5 text-ink outline-none transition-colors focus:border-brand/40"
+            />
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-[9.5px] font-medium text-muted">
+                {l(workflowCopy.variables)}
+              </span>
+              {["{{creator_name}}", "{{campaign_name}}", "{{brand_name}}"].map((variable) => (
+                <code
+                  key={variable}
+                  className="rounded-md bg-surface-warm px-2 py-1 text-[9.5px] text-slate"
+                >
+                  {variable}
+                </code>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

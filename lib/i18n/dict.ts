@@ -15,6 +15,7 @@ export const dict = {
     creators: { zh: "达人管理", en: "Creators" },
     collaborations: { zh: "合作管理", en: "Collaboration" },
     insights: { zh: "数据洞察", en: "Insight" },
+    creative: { zh: "创意中心", en: "Creative" },
     aiTools: { zh: "AI 工具", en: "AI Tools" },
     onboarding: { zh: "快速上手", en: "Onboarding" },
     onboardingHint: { zh: "5 步完成首次设置", en: "Complete setup in 5 steps" },

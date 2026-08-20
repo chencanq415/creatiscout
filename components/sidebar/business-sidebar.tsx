@@ -6,6 +6,7 @@ import {
   ChartNoAxesCombined,
   FileText,
   Handshake,
+  Palette,
   Rocket,
   Search,
   Smile,
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/creators", labelKey: "nav.creators", icon: Search },
   { href: "/collaborations", labelKey: "nav.collaborations", icon: Handshake },
   { href: "/insights", labelKey: "nav.insights", icon: ChartNoAxesCombined },
+  { href: "/creative", labelKey: "nav.creative", icon: Palette },
   { href: "/ai-tools", labelKey: "nav.aiTools", icon: Sparkles },
   {
     href: "/employees",

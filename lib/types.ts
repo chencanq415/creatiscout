@@ -332,6 +332,14 @@ export interface Campaign {
   quoteCeilingUsd?: number;
   quoteCeilingLocked?: boolean;
   automation?: "full" | "semi" | "manual";
+  aiWorkflow?: {
+    autoFollowUp: boolean;
+    emailTemplates: {
+      outreach: string;
+      followUp: string;
+      finalReminder: string;
+    };
+  };
   toggles: {
     poolFirst: boolean;
     sampling: boolean;
