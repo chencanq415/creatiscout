@@ -4,6 +4,8 @@ import { useUIStore } from "@/lib/store/ui-store";
 import { cn } from "@/lib/utils";
 import {
   ChartNoAxesCombined,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   Handshake,
   Palette,
@@ -35,6 +37,7 @@ export function BusinessSidebar() {
   const pathname = usePathname();
   const t = useT();
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const expanded = !collapsed;
 
   return (
@@ -44,25 +47,48 @@ export function BusinessSidebar() {
         collapsed ? "w-[60px]" : "w-[212px]",
       )}
     >
-      {/* Logo */}
-      <Link
-        href="/campaigns"
+      {/* Brand — the sidebar control stays secondary to the logo */}
+      <div
         className={cn(
-          "flex items-center py-4",
-          expanded ? "gap-2 px-[14px]" : "justify-center px-0",
+          "group/brand relative flex h-16 flex-shrink-0 items-center",
+          expanded ? "px-3" : "justify-center px-2",
         )}
       >
-        <img
-          src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/logo.png`}
-          alt="CreatiScout"
-          className="h-8 w-8 flex-shrink-0 object-contain"
-        />
-        {expanded && (
-          <span className="whitespace-nowrap text-[16px] font-bold tracking-tight text-navy">
-            CreatiScout
-          </span>
-        )}
-      </Link>
+        <Link
+          href="/campaigns"
+          aria-label="CreatiScout"
+          className={cn("flex min-w-0 items-center", expanded ? "flex-1 gap-2" : "flex-shrink-0")}
+        >
+          <img
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/logo.png`}
+            alt="CreatiScout"
+            className={cn("flex-shrink-0 object-contain", expanded ? "h-8 w-8" : "h-7 w-7")}
+          />
+          {expanded && (
+            <span className="whitespace-nowrap text-[16px] font-bold tracking-tight text-navy">
+              CreatiScout
+            </span>
+          )}
+        </Link>
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+          title={expanded ? "Collapse sidebar" : "Expand sidebar"}
+          className={cn(
+            "absolute z-20 flex items-center justify-center text-muted transition-all hover:text-ink focus-visible:opacity-100 focus-visible:outline-none",
+            expanded
+              ? "right-2 h-7 w-6 rounded-[7px] bg-page/80 opacity-0 hover:bg-surface-warm group-hover/brand:opacity-100"
+              : "-right-2.5 top-1/2 h-7 w-5 -translate-y-1/2 rounded-full border border-border bg-white opacity-60 shadow-sm hover:opacity-100",
+          )}
+        >
+          {expanded ? (
+            <ChevronLeft className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronRight className="h-3 w-3" />
+          )}
+        </button>
+      </div>
 
       {/* Nav */}
       <nav className="flex flex-1 flex-col space-y-0.5 px-2 py-2">

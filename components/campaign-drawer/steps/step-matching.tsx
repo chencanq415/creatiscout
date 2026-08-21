@@ -76,6 +76,7 @@ const L = {
   statusApproved: { zh: "已通过", en: "approved" },
   statusSubmitted: { zh: "已提报", en: "submitted" },
   allBatches: { zh: "全部批次", en: "all" },
+  shortlistSearch: { zh: "搜索已入选达人或批次…", en: "Search shortlisted creators or batches…" },
 } as const;
 
 type BatchStatus = "pending" | "approved" | "submitted";
@@ -252,8 +253,15 @@ const stepLabels: Record<string, LText> = {
 
 /* ---------- Component ---------- */
 
-export function StepMatching({ campaign }: { campaign: Campaign }) {
+export function StepMatching({
+  campaign,
+  mode = "matching",
+}: {
+  campaign: Campaign;
+  mode?: "matching" | "shortlist";
+}) {
   const l = useLoc();
+  const isShortlist = mode === "shortlist";
   const openShare = useUIStore((s) => s.openShare);
   const openMail = useUIStore((s) => s.openMail);
 
@@ -323,7 +331,16 @@ export function StepMatching({ campaign }: { campaign: Campaign }) {
   }
 
   const filteredBatches = useMemo(() => {
-    return batches.filter((b) => {
+    const visibleBatches = isShortlist
+      ? batches
+          .map((batch) => ({
+            ...batch,
+            creators: batch.creators.filter((creator) => creator.decision === "pre-screened"),
+          }))
+          .filter((batch) => batch.creators.length > 0)
+      : batches;
+
+    return visibleBatches.filter((b) => {
       if (q && !`${b.id} ${b.name.zh} ${b.name.en}`.toLowerCase().includes(q.toLowerCase()))
         return false;
       const hasPreScreened = b.creators.some((c) => c.decision === "pre-screened");
@@ -331,7 +348,7 @@ export function StepMatching({ campaign }: { campaign: Campaign }) {
       if (filter === "unselected" && hasPreScreened) return false;
       return true;
     });
-  }, [batches, filter, q]);
+  }, [batches, filter, isShortlist, q]);
 
   const preScreenedTotal = batches.reduce(
     (acc, b) => acc + b.creators.filter((c) => c.decision === "pre-screened").length,
@@ -343,13 +360,21 @@ export function StepMatching({ campaign }: { campaign: Campaign }) {
     <StepShell
       agentStatus="done"
       agentText={l({
-        zh: `Lucy 已交付 ${batches.length} 个达人提报批次，共 ${totalCreators} 位达人`,
-        en: `Lucy has delivered ${batches.length} creator submission batches with ${totalCreators} creators`,
+        zh: isShortlist
+          ? `已选出 ${preScreenedTotal} 位可建联达人，等待确认后开始联系`
+          : `Lucy 已交付 ${batches.length} 个达人提报批次，共 ${totalCreators} 位达人`,
+        en: isShortlist
+          ? `${preScreenedTotal} creators are ready for outreach after your review`
+          : `Lucy has delivered ${batches.length} creator submission batches with ${totalCreators} creators`,
       })}
       cta={{
         label: l({
-          zh: `推进 ${preScreenedTotal} 位初筛通过的达人`,
-          en: `Advance ${preScreenedTotal} pre-screened creators`,
+          zh: isShortlist
+            ? `联系 ${preScreenedTotal} 位已入选达人`
+            : `将 ${preScreenedTotal} 位达人加入 Shortlist`,
+          en: isShortlist
+            ? `Contact ${preScreenedTotal} shortlisted creators`
+            : `Add ${preScreenedTotal} creators to Shortlist`,
         }),
         tone: "primary",
       }}
@@ -361,11 +386,11 @@ export function StepMatching({ campaign }: { campaign: Campaign }) {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={l(L.searchPlaceholder)}
+            placeholder={l(isShortlist ? L.shortlistSearch : L.searchPlaceholder)}
             className="flex-1 border-0 bg-transparent text-[13px] text-ink outline-none placeholder:text-muted"
           />
         </div>
-        <div className="inline-flex h-9 rounded-[8px] border border-border bg-surface p-0.5">
+        {!isShortlist && <div className="inline-flex h-9 rounded-[8px] border border-border bg-surface p-0.5">
           <FilterChip
             label={l(L.filterAll)}
             count={batches.length}
@@ -388,7 +413,7 @@ export function StepMatching({ campaign }: { campaign: Campaign }) {
             active={filter === "unselected"}
             onClick={() => setFilter("unselected")}
           />
-        </div>
+        </div>}
         <Button
           variant="outline"
           size="md"

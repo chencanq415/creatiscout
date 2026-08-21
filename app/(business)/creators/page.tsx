@@ -96,7 +96,7 @@ function CreatorsContent() {
   const displayedCreators = activeTab === "matching" ? matchingCreators : filteredCreators;
 
   return (
-    <div className="min-h-full bg-page px-6 py-7 lg:px-8">
+    <div className="min-h-full bg-surface px-6 py-7 lg:px-8">
       <div className="w-full">
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div>

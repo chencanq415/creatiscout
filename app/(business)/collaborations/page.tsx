@@ -9,7 +9,7 @@ import { ArrowUpRight, CalendarClock, ChevronDown, Handshake, Search, Users } fr
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-type CollaborationStage = "shortlist" | "outreach" | "offer" | "confirmed" | "draft" | "publication" | "payment" | "tracking";
+type CollaborationStage = "aiMatching" | "shortlist" | "outreach" | "offer" | "confirmed" | "draft" | "publication" | "payment" | "tracking";
 
 const L = {
   eyebrow: { zh: "CAMPAIGN × CREATOR", en: "CAMPAIGN × CREATOR" },
@@ -31,6 +31,7 @@ const L = {
   action: { zh: "操作", en: "Action" },
   open: { zh: "打开", en: "Open" },
   noResults: { zh: "没有符合当前条件的合作记录", en: "No collaborations match these filters" },
+  aiMatching: { zh: "AI 匹配池", en: "AI Match Pool" },
   shortlist: { zh: "候选达人", en: "Shortlist" },
   outreach: { zh: "达人建联", en: "Outreach" },
   offer: { zh: "合作报价", en: "Offer" },
@@ -41,9 +42,9 @@ const L = {
   tracking: { zh: "效果追踪", en: "Performance Tracking" },
 } as const;
 
-const stages: CollaborationStage[] = ["shortlist", "outreach", "offer", "confirmed", "draft", "publication", "payment", "tracking"];
-const stageLabels = { shortlist: L.shortlist, outreach: L.outreach, offer: L.offer, confirmed: L.confirmed, draft: L.draft, publication: L.publication, payment: L.payment, tracking: L.tracking };
-const stageTone: Record<CollaborationStage, "gray" | "blue" | "amber" | "teal" | "pink" | "lavender"> = { shortlist: "gray", outreach: "blue", offer: "amber", confirmed: "teal", draft: "lavender", publication: "pink", payment: "amber", tracking: "teal" };
+const stages: CollaborationStage[] = ["aiMatching", "shortlist", "outreach", "offer", "confirmed", "draft", "publication", "payment", "tracking"];
+const stageLabels = { aiMatching: L.aiMatching, shortlist: L.shortlist, outreach: L.outreach, offer: L.offer, confirmed: L.confirmed, draft: L.draft, publication: L.publication, payment: L.payment, tracking: L.tracking };
+const stageTone: Record<CollaborationStage, "gray" | "blue" | "amber" | "teal" | "pink" | "lavender"> = { aiMatching: "lavender", shortlist: "gray", outreach: "blue", offer: "amber", confirmed: "teal", draft: "lavender", publication: "pink", payment: "amber", tracking: "teal" };
 
 export default function CollaborationsPage() {
   const l = useLoc();
@@ -72,7 +73,7 @@ export default function CollaborationsPage() {
   });
 
   return (
-    <div className="min-h-full bg-page px-6 py-7 lg:px-8">
+    <div className="min-h-full bg-surface px-6 py-7 lg:px-8">
       <div className="w-full">
         <div>
           <h1 className="text-[30px] font-bold tracking-[-0.03em] text-navy">{l(L.title)}</h1>

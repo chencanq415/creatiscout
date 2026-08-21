@@ -31,7 +31,7 @@ export default function CampaignDetailPage() {
   if (!campaign) return notFound();
 
   return (
-    <div className="flex h-[calc(100vh-60px)] min-h-0 flex-col bg-page">
+    <div className="flex h-full min-h-0 flex-col bg-surface">
       <div className="flex h-12 flex-shrink-0 items-end border-b border-border bg-surface px-6">
         <Link
           href="/campaigns"
@@ -83,18 +83,18 @@ export default function CampaignDetailPage() {
 
       <div className="min-h-0 flex-1 overflow-hidden">
         {activeTab === "details" && (
-          <div className="h-full overflow-y-auto bg-page p-6 lg:p-8">
+          <div className="h-full overflow-y-auto bg-surface p-6 lg:p-8">
             <CampaignInfoPanel campaign={campaign} standalone />
           </div>
         )}
         {activeTab === "collaboration" && <CampaignPipeline campaign={campaign} />}
         {activeTab === "performance" && (
-          <div className="h-full overflow-y-auto bg-page p-6 lg:p-8">
+          <div className="h-full overflow-y-auto bg-surface p-6 lg:p-8">
             <CampaignPerformanceInsight campaign={campaign} />
           </div>
         )}
         {activeTab === "workflow" && (
-          <div className="h-full overflow-y-auto bg-page p-6 lg:p-8">
+          <div className="h-full overflow-y-auto bg-surface p-6 lg:p-8">
             <CampaignAIWorkflow campaign={campaign} onUpdate={updateCampaign} />
           </div>
         )}

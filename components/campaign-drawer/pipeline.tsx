@@ -16,6 +16,7 @@ import { StepTracking } from "./steps/step-tracking";
 const L = {
   collaboration: { zh: "协作进度", en: "Collaboration" },
   collaborationDesc: { zh: "Campaign × 达人完整执行流程", en: "Campaign × creator delivery workflow" },
+  aiMatching: { zh: "AI 匹配池", en: "AI Match Pool" },
   shortlist: { zh: "候选达人", en: "Shortlist" },
   outreach: { zh: "达人建联", en: "Outreach" },
   offer: { zh: "合作报价", en: "Offer" },
@@ -27,6 +28,7 @@ const L = {
 } as const;
 
 type CollaborationStage =
+  | "aiMatching"
   | "shortlist"
   | "outreach"
   | "offer"
@@ -67,7 +69,8 @@ export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
     const paymentCount = invoices.filter((invoice) => !invoice.paid).length;
 
     return [
-      { id: "shortlist", label: l(L.shortlist), count: Math.max(campaign.proposed - outreachDeals.length, 0) },
+      { id: "aiMatching", label: l(L.aiMatching), count: campaign.proposed },
+      { id: "shortlist", label: l(L.shortlist), count: Math.max(Math.round(campaign.proposed * 0.25) - outreachDeals.length, 0) },
       { id: "outreach", label: l(L.outreach), count: outreachCount },
       { id: "offer", label: l(L.offer), count: offerCount },
       { id: "confirmed", label: l(L.confirmed), count: Math.max(confirmations.length, contracts.length) },
@@ -105,7 +108,7 @@ export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
 
   function selectStep(id: CollaborationStage) {
     setActive(id);
-    if (id === "shortlist" && lookalikeUnseen > 0) clearLookalikeUnseen();
+    if (id === "aiMatching" && lookalikeUnseen > 0) clearLookalikeUnseen();
   }
 
   return (
@@ -181,9 +184,10 @@ export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
       </div>
 
       {/* Active step content */}
-      <div className="flex-1 overflow-y-auto bg-page p-6">
+      <div className="flex-1 overflow-y-auto bg-surface p-6">
         <PipelineAdvanceContext.Provider value={advance}>
-          {active === "shortlist" && <StepMatching campaign={campaign} />}
+          {active === "aiMatching" && <StepMatching campaign={campaign} />}
+          {active === "shortlist" && <StepMatching campaign={campaign} mode="shortlist" />}
           {active === "outreach" && <StepOutreach campaign={campaign} />}
           {active === "offer" && <StepConfirm campaign={campaign} />}
           {active === "confirmed" && <StepContract campaign={campaign} />}
@@ -198,7 +202,7 @@ export function CampaignPipeline({ campaign }: { campaign: Campaign }) {
 }
 
 function mapCampaignStep(step: Campaign["step"]): CollaborationStage {
-  if (step === "brief" || step === "matching") return "shortlist";
+  if (step === "brief" || step === "matching") return "aiMatching";
   if (step === "outreach") return "outreach";
   if (step === "confirm") return "offer";
   if (step === "contract" || step === "sample") return "confirmed";

@@ -19,7 +19,8 @@ import {
 	Users,
 	WalletCards,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
 const L = {
@@ -101,10 +102,8 @@ export default function CampaignsPage() {
 		</Suspense>
 	);
 }
-
 function CampaignsContent() {
 	const campaigns = useUIStore((state) => state.campaigns);
-	const router = useRouter();
 	const searchParams = useSearchParams();
 	const l = useLoc();
 	const [filter, setFilter] = useState<"all" | Campaign["status"]>("all");
@@ -182,10 +181,9 @@ function CampaignsContent() {
 				{filtered.length ? (
 					<div className="grid gap-4 xl:grid-cols-2">
 						{filtered.map((campaign) => (
-							<button
+							<Link
 								key={campaign.id}
-								type="button"
-								onClick={() => router.push(`/campaigns/${campaign.id}`)}
+								href={`/campaigns/${campaign.id}`}
 								className="group overflow-hidden rounded-[14px] border border-border bg-surface text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-border-strong hover:shadow-elev"
 							>
 								<div className="flex gap-4 p-5">
@@ -247,7 +245,7 @@ function CampaignsContent() {
 										<ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
 									</span>
 								</div>
-							</button>
+							</Link>
 						))}
 					</div>
 				) : (

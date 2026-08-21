@@ -157,7 +157,7 @@ export default function TrackingDetailPage() {
   if (!target) return notFound();
 
   return (
-    <div className="flex h-[calc(100vh-60px)] min-h-0 flex-col bg-page">
+    <div className="flex h-full min-h-0 flex-col bg-surface">
       {/* Sticky header */}
       <div className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-surface px-6">
         <Link

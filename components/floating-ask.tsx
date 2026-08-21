@@ -14,7 +14,6 @@ export function FloatingAsk() {
   const openChat = useUIStore((s) => s.openChat);
   const closeChat = useUIStore((s) => s.closeChat);
   const chatOpen = useUIStore((s) => s.chatOpen);
-  const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -34,10 +33,6 @@ export function FloatingAsk() {
 
   if (chatOpen) return null;
 
-  // Horizontal center on the sidebar (collapsed 60 / expanded 212).
-  const sidebarW = sidebarCollapsed ? 60 : 212;
-  const left = sidebarW / 2 - 22;
-
   return (
     <button
       type="button"
@@ -45,11 +40,10 @@ export function FloatingAsk() {
       onClick={() => openChat()}
       aria-label={l(L.askAria)}
       title={l(L.askTitle)}
-      style={{ left, bottom: 96 }}
-      className="group fixed z-40 flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-elev transition-[background-color,box-shadow,scale] duration-200 ease-out hover:scale-[1.06] hover:bg-brand-hover hover:shadow-[0_12px_28px_rgba(248,47,114,0.28)]"
+      className="group fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white/85 bg-brand text-white shadow-[0_14px_36px_rgba(248,47,114,0.34)] transition-[background-color,box-shadow,scale] duration-200 ease-out hover:scale-[1.06] hover:bg-brand-hover hover:shadow-[0_16px_42px_rgba(248,47,114,0.42)]"
     >
       <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-brand/18" />
-      <Sparkles className="h-[18px] w-[18px]" />
+      <Sparkles className="h-6 w-6" />
     </button>
   );
 }

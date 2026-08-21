@@ -241,7 +241,7 @@ function NewCampaignContent() {
   }
 
   return (
-    <div className="min-h-full bg-page px-6 py-6 lg:px-8">
+    <div className="min-h-full bg-surface px-6 py-6 lg:px-8">
       <div className="mx-auto max-w-[1080px]">
         <Link
           href="/campaigns"

@@ -99,7 +99,7 @@ export default function OnboardingPage() {
   const percentage = Math.round((completedCount / stepCopy.length) * 100);
 
   return (
-    <div className="min-h-full bg-page px-6 py-7 lg:px-8">
+    <div className="min-h-full bg-surface px-6 py-7 lg:px-8">
       <div className="w-full">
         <header>
           <h1 className="text-[30px] font-bold tracking-[-0.03em] text-navy">{l(L.title)}</h1>
