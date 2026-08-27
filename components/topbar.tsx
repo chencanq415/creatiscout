@@ -3,6 +3,7 @@ import { Calendar, HelpCircle, PanelLeftClose, PanelLeftOpen, Sparkles } from "l
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { useUIStore } from "@/lib/store/ui-store";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/lib/account/auth-store";
 
 const L = {
   expandSidebar: { zh: "展开侧边栏", en: "Expand sidebar" },
@@ -20,6 +21,13 @@ export function Topbar() {
   const openChat = useUIStore((s) => s.openChat);
   const closeChat = useUIStore((s) => s.closeChat);
   const chatOpen = useUIStore((s) => s.chatOpen);
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const initials = (currentUser?.name ?? "Alex Morgan")
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <header className="flex h-[60px] flex-shrink-0 items-center justify-between border-b border-border bg-surface px-5">
@@ -64,7 +72,7 @@ export function Topbar() {
           <HelpCircle className="h-4 w-4" />
         </button>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-soft-lavender text-[11px] font-semibold text-lavender-text">
-          AM
+          {initials}
         </div>
       </div>
     </header>

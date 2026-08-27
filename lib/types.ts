@@ -55,6 +55,18 @@ export interface CampaignAttachment {
   url?: string;
 }
 
+export interface CampaignAIWorkflow {
+  autoMatchCreators: boolean;
+  creatorMatchingRequirements: string;
+  autoOutreach: boolean;
+  outreachTemplate: string;
+  autoNegotiation: boolean;
+  negotiationTemplate: string;
+  autoCollaborationFollowUp: boolean;
+  collaborationConfirmationTemplate: string;
+  autoReport: boolean;
+}
+
 /** 十步流程：Brief理解 → 达人匹配 → 达人建联 → 确认合作 → 合同签署 → 寄样管理 → 脚本确认 → 审核视频 → 发布回传 → 效果监控 */
 export type CampaignStep =
   | "brief"
@@ -332,14 +344,7 @@ export interface Campaign {
   quoteCeilingUsd?: number;
   quoteCeilingLocked?: boolean;
   automation?: "full" | "semi" | "manual";
-  aiWorkflow?: {
-    autoFollowUp: boolean;
-    emailTemplates: {
-      outreach: string;
-      followUp: string;
-      finalReminder: string;
-    };
-  };
+  aiWorkflow?: CampaignAIWorkflow;
   toggles: {
     poolFirst: boolean;
     sampling: boolean;

@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  AIWorkflowConfig,
+  aiWorkflowStepLabels,
+  getDefaultAIWorkflow,
+} from "@/components/campaigns/ai-workflow-config";
 import { Button } from "@/components/ui/button";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { useUIStore } from "@/lib/store/ui-store";
@@ -101,7 +106,21 @@ const L = {
   },
   chooseBrief: { zh: "选择 Brief 文件", en: "Choose brief files" },
   readyToParse: { zh: "已准备解析", en: "Ready to parse" },
+  campaignStage: { zh: "创建 Campaign", en: "Create Campaign" },
+  workflowStage: { zh: "AI 工作流配置", en: "AI Workflow" },
+  campaignStageSub: {
+    zh: "完成 Campaign 信息与合作条件",
+    en: "Complete campaign information and collaboration terms",
+  },
+  workflowStageSub: {
+    zh: "配置 AI 如何匹配、建联、跟进与复盘",
+    en: "Configure how AI matches, reaches out, follows up, and reports",
+  },
+  previous: { zh: "上一步", en: "Previous" },
+  next: { zh: "下一步", en: "Next" },
 } as const;
+
+type CreateTab = "details" | "workflow";
 
 const goals: CampaignGoal[] = [
   "brand_awareness",
@@ -146,6 +165,7 @@ function NewCampaignContent() {
   const briefMode = searchParams.get("mode") === "brief";
   const addCampaign = useUIStore((state) => state.addCampaign);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<CreateTab>("details");
   const [basic, setBasic] = useState({
     brand: "",
     name: "",
@@ -186,6 +206,7 @@ function NewCampaignContent() {
   });
   const [terms, setTerms] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [aiWorkflow, setAIWorkflow] = useState(() => getDefaultAIWorkflow(l));
 
   function submit(status: CampaignStatus) {
     if (!basic.brand.trim() || !basic.name.trim() || !basic.startAt || !basic.endAt) {
@@ -233,6 +254,7 @@ function NewCampaignContent() {
       client: { zh: basic.brand, en: basic.brand },
       toggles: { poolFirst: true, sampling: enabled.products, adCode: true },
       automation: "full",
+      aiWorkflow,
       step: "brief",
       updatedAt: new Date().toISOString(),
     };
@@ -240,9 +262,28 @@ function NewCampaignContent() {
     router.push(`/campaigns/${campaign.id}`);
   }
 
+  function validateBasic() {
+    if (!basic.brand.trim() || !basic.name.trim() || !basic.startAt || !basic.endAt) {
+      setError(l(L.required));
+      return false;
+    }
+    setError("");
+    return true;
+  }
+
+  function handlePrimary() {
+    if (activeTab === "details") {
+      if (!validateBasic()) return;
+      setActiveTab("workflow");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    submit("active");
+  }
+
   return (
     <div className="min-h-full bg-surface px-6 py-6 lg:px-8">
-      <div className="mx-auto max-w-[1080px]">
+      <div className="mx-auto max-w-[1180px]">
         <Link
           href="/campaigns"
           className="inline-flex items-center gap-1.5 text-[12px] font-medium text-slate hover:text-ink"
@@ -260,12 +301,31 @@ function NewCampaignContent() {
               <Save className="h-4 w-4" />
               {l(L.saveDraft)}
             </Button>
-            <Button onClick={() => submit("active")}>
-              {l(L.create)}
+            <Button onClick={handlePrimary}>
+              {activeTab === "workflow" ? l(L.create) : l(L.next)}
               <ArrowRightIcon />
             </Button>
           </div>
         </div>
+
+        <div className="mt-6 flex items-center gap-1 border-b border-border">
+          <CreateTabButton
+            step={1}
+            title={l({ zh: "Campaign 详情", en: "Campaign Details" })}
+            active={activeTab === "details"}
+            complete={activeTab === "workflow"}
+            onClick={() => setActiveTab("details")}
+          />
+          <div className="px-1 text-[13px] text-border-strong">→</div>
+          <CreateTabButton
+            step={2}
+            title={l(L.workflowStage)}
+            active={activeTab === "workflow"}
+            complete={false}
+            onClick={() => setActiveTab("workflow")}
+          />
+        </div>
+
         {error && (
           <div className="mt-4 rounded-[10px] border border-brand/25 bg-soft-pink px-4 py-3 text-[12px] font-medium text-brand-strong">
             {error}
@@ -274,315 +334,472 @@ function NewCampaignContent() {
 
         {briefMode && <BriefImportPanel files={attachments} onFiles={setAttachments} />}
 
-        <div className="mt-6 space-y-5">
-          <FormSection
-            icon={<FileText className="h-4 w-4" />}
-            title={l(L.basic)}
-            subtitle={l(L.basicSub)}
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label={l(L.brand)} required>
-                <Input
-                  value={basic.brand}
-                  onChange={(value) => setBasic({ ...basic, brand: value })}
-                />
-              </Field>
-              <Field label={l(L.campaignName)} required>
-                <Input
-                  value={basic.name}
-                  onChange={(value) => setBasic({ ...basic, name: value })}
-                />
-              </Field>
-            </div>
-            <Field label={l(L.description)}>
-              <Textarea
-                value={basic.description}
-                onChange={(value) => setBasic({ ...basic, description: value })}
+        <div className="mt-6 grid gap-7 lg:grid-cols-[190px_minmax(0,1fr)] lg:items-start">
+          <aside className="lg:sticky lg:top-6">
+            {activeTab === "details" ? (
+              <SectionIndex
+                key="details-index"
+                items={[
+                  { id: "campaign-basic", label: l(L.basic) },
+                  {
+                    id: "campaign-compensation",
+                    label: l(L.compensation),
+                  },
+                  {
+                    id: "campaign-creators",
+                    label: l(L.creatorRequirements),
+                  },
+                  { id: "campaign-terms", label: l(L.terms) },
+                ]}
               />
-            </Field>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label={l(L.goal)}>
-                <Select
-                  value={basic.goal}
-                  onChange={(value) => setBasic({ ...basic, goal: value as CampaignGoal })}
-                >
-                  {goals.map((goal) => (
-                    <option key={goal} value={goal}>
-                      {l(goalLabels[goal])}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label={l(L.category)}>
-                <Input
-                  value={basic.category}
-                  onChange={(value) => setBasic({ ...basic, category: value })}
-                  placeholder="Beauty, Fashion, Gaming…"
-                />
-              </Field>
-            </div>
-            <Field label={l(L.duration)} required>
-              <div className="grid gap-3 md:grid-cols-2">
-                <Input
-                  type="date"
-                  value={basic.startAt}
-                  onChange={(value) => setBasic({ ...basic, startAt: value })}
-                />
-                <Input
-                  type="date"
-                  value={basic.endAt}
-                  onChange={(value) => setBasic({ ...basic, endAt: value })}
-                />
-              </div>
-            </Field>
-            <Field label={l(L.image)} hint={l(L.imageHint)}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-[9px] bg-surface-warm text-muted">
-                  {basic.image ? (
-                    <img
-                      src={basic.image}
-                      alt=""
-                      className="h-11 w-11 rounded-[9px] object-cover"
+            ) : (
+              <SectionIndex
+                key="workflow-index"
+                items={[
+                  {
+                    id: "workflow-section-1",
+                    label: l(aiWorkflowStepLabels[0]),
+                  },
+                  {
+                    id: "workflow-section-2",
+                    label: l(aiWorkflowStepLabels[1]),
+                  },
+                  {
+                    id: "workflow-section-3",
+                    label: l(aiWorkflowStepLabels[2]),
+                  },
+                ]}
+              />
+            )}
+          </aside>
+
+          <div className="min-w-0 space-y-5">
+            {activeTab === "details" && (
+              <FormSection
+                id="campaign-basic"
+                icon={<FileText className="h-4 w-4" />}
+                title={l(L.basic)}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label={l(L.brand)} required>
+                    <Input
+                      value={basic.brand}
+                      onChange={(value) => setBasic({ ...basic, brand: value })}
                     />
-                  ) : basic.brand.trim() ? (
-                    <span className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#f15b86,#8f3fe2)] px-1 text-center text-[8px] font-bold leading-[10px] text-white">
-                      {basic.brand}
-                    </span>
-                  ) : (
-                    <ImageIcon className="h-4 w-4" />
-                  )}
+                  </Field>
+                  <Field label={l(L.campaignName)} required>
+                    <Input
+                      value={basic.name}
+                      onChange={(value) => setBasic({ ...basic, name: value })}
+                    />
+                  </Field>
                 </div>
-                <div className="flex-1">
-                  <Input
-                    value={basic.image}
-                    onChange={(value) => setBasic({ ...basic, image: value })}
-                    placeholder="https://…"
+                <Field label={l(L.description)}>
+                  <Textarea
+                    value={basic.description}
+                    onChange={(value) => setBasic({ ...basic, description: value })}
                   />
-                </div>
-              </div>
-            </Field>
-          </FormSection>
-
-          <FormSection
-            icon={<WalletCards className="h-4 w-4" />}
-            title={l(L.compensation)}
-            subtitle={l(L.compensationSub)}
-          >
-            <CompensationBlock
-              checked={enabled.flatFee}
-              onToggle={() => setEnabled({ ...enabled, flatFee: !enabled.flatFee })}
-              title={l(L.flatFee)}
-            >
-              {enabled.flatFee && (
-                <div className="grid gap-3 md:grid-cols-4">
-                  <Field label={l(L.currency)}>
-                    <CurrencySelect
-                      value={flatFee.currency}
-                      onChange={(currency) => setFlatFee({ ...flatFee, currency })}
-                    />
+                </Field>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label={l(L.goal)}>
+                    <Select
+                      value={basic.goal}
+                      onChange={(value) => setBasic({ ...basic, goal: value as CampaignGoal })}
+                    >
+                      {goals.map((goal) => (
+                        <option key={goal} value={goal}>
+                          {l(goalLabels[goal])}
+                        </option>
+                      ))}
+                    </Select>
                   </Field>
-                  <Field label={l(L.minFee)}>
-                    <NumberInput
-                      value={flatFee.minFee}
-                      onChange={(minFee) => setFlatFee({ ...flatFee, minFee })}
-                    />
-                  </Field>
-                  <Field label={l(L.maxFee)}>
-                    <NumberInput
-                      value={flatFee.maxFee}
-                      onChange={(maxFee) => setFlatFee({ ...flatFee, maxFee })}
-                    />
-                  </Field>
-                  <Field label={l(L.totalBudget)}>
-                    <NumberInput
-                      value={flatFee.totalBudget}
-                      onChange={(totalBudget) => setFlatFee({ ...flatFee, totalBudget })}
-                    />
-                  </Field>
-                </div>
-              )}
-            </CompensationBlock>
-            <CompensationBlock
-              checked={enabled.commission}
-              onToggle={() => setEnabled({ ...enabled, commission: !enabled.commission })}
-              title={l(L.commission)}
-            >
-              {enabled.commission && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <Field label={l(L.commissionRate)}>
-                    <NumberInput
-                      value={commission.rate}
-                      onChange={(rate) => setCommission({ ...commission, rate })}
-                    />
-                  </Field>
-                  <Field label={l(L.affiliateLink)}>
+                  <Field label={l(L.category)}>
                     <Input
-                      value={commission.affiliateLink}
-                      onChange={(affiliateLink) => setCommission({ ...commission, affiliateLink })}
-                      icon={<Link2 className="h-3.5 w-3.5" />}
+                      value={basic.category}
+                      onChange={(value) => setBasic({ ...basic, category: value })}
+                      placeholder="Beauty, Fashion, Gaming…"
                     />
                   </Field>
                 </div>
-              )}
-            </CompensationBlock>
-            <CompensationBlock
-              checked={enabled.products}
-              onToggle={() => setEnabled({ ...enabled, products: !enabled.products })}
-              title={l(L.freeProduct)}
-            >
-              {enabled.products && (
-                <div className="space-y-3">
-                  {products.map((product, index) => (
-                    <ProductEditor
-                      key={product.id}
-                      product={product}
-                      index={index}
-                      onChange={(next) =>
-                        setProducts(products.map((item) => (item.id === product.id ? next : item)))
-                      }
-                      onRemove={() =>
-                        setProducts(products.filter((item) => item.id !== product.id))
-                      }
-                    />
-                  ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setProducts([...products, makeProduct()])}
-                  >
-                    <PackagePlus className="h-4 w-4" />
-                    {l(L.addProduct)}
-                  </Button>
-                </div>
-              )}
-            </CompensationBlock>
-            <CompensationBlock
-              checked={enabled.giftCard}
-              onToggle={() => setEnabled({ ...enabled, giftCard: !enabled.giftCard })}
-              title={l(L.giftCard)}
-            >
-              {enabled.giftCard && (
-                <div className="grid gap-3 md:grid-cols-3">
-                  <Field label={l(L.giftCardName)}>
+                <Field label={l(L.duration)} required>
+                  <div className="grid gap-3 md:grid-cols-2">
                     <Input
-                      value={giftCard.name}
-                      onChange={(name) => setGiftCard({ ...giftCard, name })}
+                      type="date"
+                      value={basic.startAt}
+                      onChange={(value) => setBasic({ ...basic, startAt: value })}
                     />
-                  </Field>
-                  <Field label={l(L.currency)}>
-                    <CurrencySelect
-                      value={giftCard.currency}
-                      onChange={(currency) => setGiftCard({ ...giftCard, currency })}
+                    <Input
+                      type="date"
+                      value={basic.endAt}
+                      onChange={(value) => setBasic({ ...basic, endAt: value })}
                     />
-                  </Field>
-                  <Field label={l(L.value)}>
-                    <NumberInput
-                      value={giftCard.value}
-                      onChange={(value) => setGiftCard({ ...giftCard, value })}
-                    />
-                  </Field>
-                  <div className="md:col-span-3">
-                    <Field label={l(L.description)}>
-                      <Input
-                        value={giftCard.description}
-                        onChange={(description) => setGiftCard({ ...giftCard, description })}
-                      />
-                    </Field>
                   </div>
+                </Field>
+                <Field label={l(L.image)} hint={l(L.imageHint)}>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-[9px] bg-surface-warm text-muted">
+                      {basic.image ? (
+                        <img
+                          src={basic.image}
+                          alt=""
+                          className="h-11 w-11 rounded-[9px] object-cover"
+                        />
+                      ) : basic.brand.trim() ? (
+                        <span className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#f15b86,#8f3fe2)] px-1 text-center text-[8px] font-bold leading-[10px] text-white">
+                          {basic.brand}
+                        </span>
+                      ) : (
+                        <ImageIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        value={basic.image}
+                        onChange={(value) => setBasic({ ...basic, image: value })}
+                        placeholder="https://…"
+                      />
+                    </div>
+                  </div>
+                </Field>
+              </FormSection>
+            )}
+
+            {activeTab === "details" && (
+              <FormSection
+                id="campaign-compensation"
+                icon={<WalletCards className="h-4 w-4" />}
+                title={l(L.compensation)}
+              >
+                <CompensationBlock
+                  checked={enabled.flatFee}
+                  onToggle={() => setEnabled({ ...enabled, flatFee: !enabled.flatFee })}
+                  title={l(L.flatFee)}
+                >
+                  {enabled.flatFee && (
+                    <div className="grid gap-3 md:grid-cols-4">
+                      <Field label={l(L.currency)}>
+                        <CurrencySelect
+                          value={flatFee.currency}
+                          onChange={(currency) => setFlatFee({ ...flatFee, currency })}
+                        />
+                      </Field>
+                      <Field label={l(L.minFee)}>
+                        <NumberInput
+                          value={flatFee.minFee}
+                          onChange={(minFee) => setFlatFee({ ...flatFee, minFee })}
+                        />
+                      </Field>
+                      <Field label={l(L.maxFee)}>
+                        <NumberInput
+                          value={flatFee.maxFee}
+                          onChange={(maxFee) => setFlatFee({ ...flatFee, maxFee })}
+                        />
+                      </Field>
+                      <Field label={l(L.totalBudget)}>
+                        <NumberInput
+                          value={flatFee.totalBudget}
+                          onChange={(totalBudget) => setFlatFee({ ...flatFee, totalBudget })}
+                        />
+                      </Field>
+                    </div>
+                  )}
+                </CompensationBlock>
+                <CompensationBlock
+                  checked={enabled.commission}
+                  onToggle={() => setEnabled({ ...enabled, commission: !enabled.commission })}
+                  title={l(L.commission)}
+                >
+                  {enabled.commission && (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <Field label={l(L.commissionRate)}>
+                        <NumberInput
+                          value={commission.rate}
+                          onChange={(rate) => setCommission({ ...commission, rate })}
+                        />
+                      </Field>
+                      <Field label={l(L.affiliateLink)}>
+                        <Input
+                          value={commission.affiliateLink}
+                          onChange={(affiliateLink) =>
+                            setCommission({ ...commission, affiliateLink })
+                          }
+                          icon={<Link2 className="h-3.5 w-3.5" />}
+                        />
+                      </Field>
+                    </div>
+                  )}
+                </CompensationBlock>
+                <CompensationBlock
+                  checked={enabled.products}
+                  onToggle={() => setEnabled({ ...enabled, products: !enabled.products })}
+                  title={l(L.freeProduct)}
+                >
+                  {enabled.products && (
+                    <div className="space-y-3">
+                      {products.map((product, index) => (
+                        <ProductEditor
+                          key={product.id}
+                          product={product}
+                          index={index}
+                          onChange={(next) =>
+                            setProducts(
+                              products.map((item) => (item.id === product.id ? next : item)),
+                            )
+                          }
+                          onRemove={() =>
+                            setProducts(products.filter((item) => item.id !== product.id))
+                          }
+                        />
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setProducts([...products, makeProduct()])}
+                      >
+                        <PackagePlus className="h-4 w-4" />
+                        {l(L.addProduct)}
+                      </Button>
+                    </div>
+                  )}
+                </CompensationBlock>
+                <CompensationBlock
+                  checked={enabled.giftCard}
+                  onToggle={() => setEnabled({ ...enabled, giftCard: !enabled.giftCard })}
+                  title={l(L.giftCard)}
+                >
+                  {enabled.giftCard && (
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <Field label={l(L.giftCardName)}>
+                        <Input
+                          value={giftCard.name}
+                          onChange={(name) => setGiftCard({ ...giftCard, name })}
+                        />
+                      </Field>
+                      <Field label={l(L.currency)}>
+                        <CurrencySelect
+                          value={giftCard.currency}
+                          onChange={(currency) => setGiftCard({ ...giftCard, currency })}
+                        />
+                      </Field>
+                      <Field label={l(L.value)}>
+                        <NumberInput
+                          value={giftCard.value}
+                          onChange={(value) => setGiftCard({ ...giftCard, value })}
+                        />
+                      </Field>
+                      <div className="md:col-span-3">
+                        <Field label={l(L.description)}>
+                          <Input
+                            value={giftCard.description}
+                            onChange={(description) => setGiftCard({ ...giftCard, description })}
+                          />
+                        </Field>
+                      </div>
+                    </div>
+                  )}
+                </CompensationBlock>
+              </FormSection>
+            )}
+
+            {activeTab === "details" && (
+              <FormSection
+                id="campaign-creators"
+                icon={<Users className="h-4 w-4" />}
+                title={l(L.creatorRequirements)}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label={l(L.platforms)} hint={l(L.commaHint)}>
+                    <Input
+                      value={requirements.platforms}
+                      onChange={(platforms) => setRequirements({ ...requirements, platforms })}
+                      placeholder="TikTok US, Instagram, RedNote"
+                    />
+                  </Field>
+                  <Field label={l(L.regions)} hint={l(L.commaHint)}>
+                    <Input
+                      value={requirements.regions}
+                      onChange={(regions) => setRequirements({ ...requirements, regions })}
+                      placeholder="United States, Canada"
+                    />
+                  </Field>
+                  <Field label={l(L.languages)} hint={l(L.commaHint)}>
+                    <Input
+                      value={requirements.languages}
+                      onChange={(languages) => setRequirements({ ...requirements, languages })}
+                      placeholder="English, Spanish"
+                    />
+                  </Field>
+                  <Field label={l(L.minimumFollowers)}>
+                    <NumberInput
+                      value={requirements.minimumFollowers}
+                      onChange={(minimumFollowers) =>
+                        setRequirements({ ...requirements, minimumFollowers })
+                      }
+                    />
+                  </Field>
+                  <Field label={l(L.creatorCategories)} hint={l(L.commaHint)}>
+                    <Input
+                      value={requirements.categories}
+                      onChange={(categories) => setRequirements({ ...requirements, categories })}
+                      placeholder="Beauty, Skincare"
+                    />
+                  </Field>
                 </div>
-              )}
-            </CompensationBlock>
-          </FormSection>
+                <Field label={l(L.contentTypes)} hint={l(L.commaHint)}>
+                  <Input
+                    value={requirements.contentTypes}
+                    onChange={(contentTypes) => setRequirements({ ...requirements, contentTypes })}
+                    placeholder="TikTok Video, Instagram Reel, RedNote Post"
+                  />
+                </Field>
+              </FormSection>
+            )}
 
-          <FormSection
-            icon={<Users className="h-4 w-4" />}
-            title={l(L.creatorRequirements)}
-            subtitle={l(L.creatorRequirementsSub)}
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label={l(L.platforms)} hint={l(L.commaHint)}>
-                <Input
-                  value={requirements.platforms}
-                  onChange={(platforms) => setRequirements({ ...requirements, platforms })}
-                  placeholder="TikTok US, Instagram, RedNote"
-                />
-              </Field>
-              <Field label={l(L.regions)} hint={l(L.commaHint)}>
-                <Input
-                  value={requirements.regions}
-                  onChange={(regions) => setRequirements({ ...requirements, regions })}
-                  placeholder="United States, Canada"
-                />
-              </Field>
-              <Field label={l(L.languages)} hint={l(L.commaHint)}>
-                <Input
-                  value={requirements.languages}
-                  onChange={(languages) => setRequirements({ ...requirements, languages })}
-                  placeholder="English, Spanish"
-                />
-              </Field>
-              <Field label={l(L.minimumFollowers)}>
-                <NumberInput
-                  value={requirements.minimumFollowers}
-                  onChange={(minimumFollowers) =>
-                    setRequirements({ ...requirements, minimumFollowers })
-                  }
-                />
-              </Field>
-              <Field label={l(L.creatorCategories)} hint={l(L.commaHint)}>
-                <Input
-                  value={requirements.categories}
-                  onChange={(categories) => setRequirements({ ...requirements, categories })}
-                  placeholder="Beauty, Skincare"
-                />
-              </Field>
-            </div>
-            <Field label={l(L.contentTypes)} hint={l(L.commaHint)}>
-              <Input
-                value={requirements.contentTypes}
-                onChange={(contentTypes) => setRequirements({ ...requirements, contentTypes })}
-                placeholder="TikTok Video, Instagram Reel, RedNote Post"
+            {activeTab === "details" && (
+              <FormSection
+                id="campaign-terms"
+                icon={<Paperclip className="h-4 w-4" />}
+                title={l(L.terms)}
+              >
+                <Field label={l(L.termsConditions)}>
+                  <Textarea value={terms} onChange={setTerms} rows={5} />
+                </Field>
+                <Field label={l(L.attachments)}>
+                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-dashed border-border-strong bg-surface-warm px-4 py-6 text-[12px] font-medium text-slate hover:border-brand/40 hover:text-brand">
+                    <Paperclip className="h-4 w-4" />
+                    {attachments.length
+                      ? attachments.map((file) => file.name).join(", ")
+                      : l(L.attachments)}
+                    <input
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={(event) => setAttachments(Array.from(event.target.files ?? []))}
+                    />
+                  </label>
+                </Field>
+              </FormSection>
+            )}
+
+            {activeTab === "workflow" && (
+              <AIWorkflowConfig
+                value={aiWorkflow}
+                onChange={setAIWorkflow}
+                sectionIds={["workflow-section-1", "workflow-section-2", "workflow-section-3"]}
               />
-            </Field>
-          </FormSection>
-
-          <FormSection
-            icon={<Paperclip className="h-4 w-4" />}
-            title={l(L.terms)}
-            subtitle={l(L.termsSub)}
-          >
-            <Field label={l(L.termsConditions)}>
-              <Textarea value={terms} onChange={setTerms} rows={5} />
-            </Field>
-            <Field label={l(L.attachments)}>
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-dashed border-border-strong bg-surface-warm px-4 py-6 text-[12px] font-medium text-slate hover:border-brand/40 hover:text-brand">
-                <Paperclip className="h-4 w-4" />
-                {attachments.length
-                  ? attachments.map((file) => file.name).join(", ")
-                  : l(L.attachments)}
-                <input
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={(event) => setAttachments(Array.from(event.target.files ?? []))}
-                />
-              </label>
-            </Field>
-          </FormSection>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 flex justify-end gap-2 pb-10">
-          <Button variant="outline" onClick={() => submit("draft")}>
-            <Save className="h-4 w-4" />
-            {l(L.saveDraft)}
-          </Button>
-          <Button onClick={() => submit("active")}>
-            {l(L.create)}
-            <ArrowRightIcon />
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => submit("draft")}>
+              <Save className="h-4 w-4" />
+              {l(L.saveDraft)}
+            </Button>
+            <Button onClick={handlePrimary}>
+              {activeTab === "workflow" ? l(L.create) : l(L.next)}
+              <ArrowRightIcon />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function CreateTabButton({
+  step,
+  title,
+  active,
+  complete,
+  onClick,
+}: {
+  step: number;
+  title: string;
+  active: boolean;
+  complete: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative flex min-w-0 items-center gap-2.5 px-3 pb-3 pt-2.5 text-left transition-colors sm:min-w-[190px]",
+        active ? "text-brand" : "text-slate hover:text-ink",
+      )}
+    >
+      <span
+        className={cn(
+          "flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-bold",
+          active
+            ? "bg-brand text-white"
+            : complete
+              ? "bg-teal text-white"
+              : "border border-border bg-white text-muted",
+        )}
+      >
+        {complete ? "✓" : step}
+      </span>
+      <span
+        className={cn("truncate text-[11.5px] font-semibold", active ? "text-brand" : "text-ink")}
+      >
+        {title}
+      </span>
+      <span
+        className={cn(
+          "absolute inset-x-3 bottom-0 h-[2px] rounded-full",
+          active ? "bg-brand" : "bg-transparent",
+        )}
+      />
+    </button>
+  );
+}
+
+function SectionIndex({ items }: { items: { id: string; label: string }[] }) {
+  const [activeId, setActiveId] = useState(items[0]?.id ?? "");
+
+  return (
+    <nav aria-label="Section index" className="py-1 pl-1">
+      <div className="relative space-y-0.5 before:absolute before:bottom-2 before:left-[6px] before:top-2 before:w-px before:bg-border/80">
+        {items.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => {
+              setActiveId(item.id);
+              document
+                .getElementById(item.id)
+                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            className={cn(
+              "group relative flex w-full items-center gap-3 rounded-[8px] py-2 pl-0.5 pr-2 text-left transition-colors",
+              activeId === item.id
+                ? "text-ink"
+                : "text-muted hover:bg-surface-warm/50 hover:text-slate",
+            )}
+          >
+            <span
+              className={cn(
+                "relative z-10 h-[9px] w-[9px] flex-shrink-0 rounded-full border-2 transition-colors",
+                activeId === item.id
+                  ? "border-white bg-navy shadow-[0_0_0_1px_rgba(15,23,42,0.16)]"
+                  : "border-white bg-border-strong group-hover:bg-slate",
+              )}
+            />
+            <span
+              className={cn(
+                "min-w-0 text-[10.5px] leading-4",
+                activeId === item.id ? "font-semibold text-ink" : "font-medium text-muted",
+              )}
+            >
+              {item.label}
+            </span>
+          </button>
+        ))}
+      </div>
+    </nav>
   );
 }
 
@@ -628,21 +845,26 @@ function BriefImportPanel({ files, onFiles }: { files: File[]; onFiles: (files: 
 }
 
 function FormSection({
+  id,
   icon,
   title,
-  subtitle,
   children,
-}: { icon: React.ReactNode; title: string; subtitle: string; children: React.ReactNode }) {
+}: {
+  id?: string;
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="rounded-[16px] border border-border bg-surface shadow-card">
+    <section
+      id={id}
+      className="scroll-mt-20 rounded-[16px] border border-border bg-surface shadow-card"
+    >
       <div className="flex items-center gap-3 border-b border-border px-5 py-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-soft-pink text-brand">
           {icon}
         </div>
-        <div>
-          <h2 className="text-[15px] font-bold text-navy">{title}</h2>
-          <p className="mt-0.5 text-[10.5px] text-muted">{subtitle}</p>
-        </div>
+        <h2 className="text-[15px] font-bold text-navy">{title}</h2>
       </div>
       <div className="space-y-4 p-5">{children}</div>
     </section>
@@ -655,14 +877,14 @@ function Field({
   children,
 }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
-    <label className="block">
+    <div className="block">
       <div className="mb-1.5 text-[11px] font-semibold text-ink">
         {label}
         {required && <span className="ml-1 text-brand">*</span>}
       </div>
       {children}
       {hint && <div className="mt-1 text-[9.5px] text-muted">{hint}</div>}
-    </label>
+    </div>
   );
 }
 function Input({

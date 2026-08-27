@@ -1,15 +1,16 @@
 "use client";
 
 import { ArrowRight, Check, Coins, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { EMPLOYEE_PLAN_KEY } from "@/lib/account/trial";
+import { useAuthStore, type EmployeePlan } from "@/lib/account/auth-store";
+import { EMPLOYEE_PLAN_KEY, getOrCreatePlusTrial } from "@/lib/account/trial";
 import type { LText } from "@/lib/i18n/dict";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
 
-type PlanId = "free" | "plus" | "pro" | "enterprise";
+type PlanId = EmployeePlan;
 
 type Plan = {
   id: PlanId;
@@ -159,12 +160,15 @@ function isPlanId(value: string | null): value is PlanId {
 
 export function FirstVisitOnboarding() {
   const [open, setOpen] = useState(false);
+  const completed = useRef(false);
   const router = useRouter();
+  const employeePlan = useAuthStore((state) => state.currentUser?.employeePlan ?? null);
 
   useEffect(() => {
+    if (completed.current) return;
     const forcePreview = new URLSearchParams(window.location.search).get("onboarding") === "1";
-    setOpen(forcePreview || !isPlanId(window.localStorage.getItem(EMPLOYEE_PLAN_KEY)));
-  }, []);
+    setOpen(forcePreview || !isPlanId(employeePlan));
+  }, [employeePlan]);
 
   if (!open) return null;
 
@@ -178,6 +182,7 @@ export function FirstVisitOnboarding() {
         <DigitalEmployeeOnboarding
           modal
           onComplete={() => {
+            completed.current = true;
             setOpen(false);
             router.replace("/campaigns");
           }}
@@ -195,8 +200,10 @@ export function DigitalEmployeeOnboarding({
   onComplete?: () => void;
 }) {
   const l = useLoc();
+  const accountPlan = useAuthStore((state) => state.currentUser?.employeePlan ?? null);
+  const setEmployeePlan = useAuthStore((state) => state.setEmployeePlan);
   const [selected, setSelected] = useState<PlanId>("plus");
-  const [currentPlan, setCurrentPlan] = useState<PlanId | null>(modal ? null : "free");
+  const [currentPlan, setCurrentPlan] = useState<PlanId | null>(modal ? null : accountPlan);
   const [saved, setSaved] = useState(false);
   const [demoRequested, setDemoRequested] = useState(false);
   const selectedPlan = plans.find((plan) => plan.id === selected) ?? plans[1];
@@ -204,12 +211,11 @@ export function DigitalEmployeeOnboarding({
 
   useEffect(() => {
     if (modal) return;
-    const stored = window.localStorage.getItem(EMPLOYEE_PLAN_KEY);
-    if (isPlanId(stored)) {
-      setCurrentPlan(stored);
-      setSelected(stored);
+    if (isPlanId(accountPlan)) {
+      setCurrentPlan(accountPlan);
+      setSelected(accountPlan);
     }
-  }, [modal]);
+  }, [accountPlan, modal]);
 
   const complete = () => {
     if (selected === "enterprise") {
@@ -217,6 +223,8 @@ export function DigitalEmployeeOnboarding({
       return;
     }
     window.localStorage.setItem(EMPLOYEE_PLAN_KEY, selected);
+    setEmployeePlan(selected);
+    if (selected === "plus") getOrCreatePlusTrial();
     setCurrentPlan(selected);
     if (modal) {
       onComplete?.();

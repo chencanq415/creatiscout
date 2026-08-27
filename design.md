@@ -92,6 +92,21 @@ Every step should expose:
 
 ## 5. Key Screens
 
+### Authentication & First-Run Flow
+
+Purpose: establish a lightweight workspace identity before the user hires a digital employee.
+
+Flow:
+
+1. New and signed-out users enter through `/login`.
+2. Login and registration share one bilingual brand surface.
+3. A newly registered account must select Free, Plus, Pro, or request an Enterprise demo.
+4. After plan selection, the user enters Campaigns as the default product home.
+5. Returning users retain their workspace identity and selected employee plan locally.
+
+The current demo uses mock accounts stored in the browser. Production authentication must replace
+this storage layer with a secure backend session without changing the page and routing contract.
+
 ### Digital Employee Workroom
 
 Purpose: the main AI-native workspace.
@@ -245,4 +260,3 @@ Avoid:
 The experience should make AI feel like a reliable operator:
 
 > Automated enough to save work, structured enough to trust, and controllable enough to approve.
-

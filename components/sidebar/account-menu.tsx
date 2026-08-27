@@ -12,9 +12,11 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getOrCreatePlusTrial, getTrialDaysRemaining } from "@/lib/account/trial";
+import { useAuthStore } from "@/lib/account/auth-store";
 import { useI18nStore } from "@/lib/i18n/use-i18n";
 import { useT } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface AccountMenuProps {
   collapsed?: boolean;
@@ -22,8 +24,11 @@ interface AccountMenuProps {
 
 export function AccountMenu({ collapsed = false }: AccountMenuProps) {
   const t = useT();
+  const router = useRouter();
   const locale = useI18nStore((s) => s.locale);
   const setLocale = useI18nStore((s) => s.setLocale);
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const logout = useAuthStore((state) => state.logout);
   const [langOpen, setLangOpen] = useState(false);
   const [trialDays, setTrialDays] = useState(14);
 
@@ -32,11 +37,22 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
     if (trial) setTrialDays(getTrialDaysRemaining(trial));
   }, []);
 
+  const plan = currentUser?.employeePlan ?? "free";
   const trialLabel =
-    trialDays > 0
+    plan === "plus" && trialDays > 0
       ? t("account.trialRemaining").replace("{days}", String(trialDays))
-      : t("account.trialExpired");
-  const planLabel = trialDays > 0 ? t("account.plusTrial") : t("account.free");
+      : plan === "plus"
+        ? t("account.trialExpired")
+        : `${plan.charAt(0).toUpperCase()}${plan.slice(1)}`;
+  const planLabel = plan === "plus" && trialDays > 0 ? t("account.plusTrial") : `${plan.charAt(0).toUpperCase()}${plan.slice(1)}`;
+  const workspaceName = currentUser?.workspaceName ?? "Demo Workspace";
+  const email = currentUser?.email ?? "demo@creatiscout.ai";
+  const initials = (currentUser?.name ?? "CreatiScout")
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <Popover>
@@ -49,7 +65,7 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
           )}
         >
           <div className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#5B3A24] text-[12px] font-bold text-white">
-            CS
+            {initials}
             <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-navy ring-2 ring-surface">
               <Sparkles className="h-2 w-2 text-white" />
             </span>
@@ -59,14 +75,14 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="truncate text-[13px] font-semibold text-ink">
-                    Demo Workspace
+                    {workspaceName}
                   </span>
                   <span className="inline-flex flex-shrink-0 items-center gap-0.5 rounded-full bg-navy/85 px-1.5 py-px text-[10px] font-semibold text-white">
                     <Sparkles className="h-2.5 w-2.5" />
                     {planLabel}
                   </span>
                 </div>
-                <div className="truncate text-[10.5px] text-muted">demo@creatiscout.example</div>
+                <div className="truncate text-[10.5px] text-muted">{email}</div>
               </div>
               <ChevronsUpDown className="h-3.5 w-3.5 flex-shrink-0 text-muted" />
             </>
@@ -77,20 +93,20 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
         {/* Identity row */}
         <div className="flex items-center gap-2.5 px-2 py-2">
           <div className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#5B3A24] text-[13px] font-bold text-white">
-            CS
+            {initials}
             <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-navy ring-2 ring-surface">
               <Sparkles className="h-2 w-2 text-white" />
             </span>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <span className="truncate text-[14px] font-bold text-ink">Demo Workspace</span>
+              <span className="truncate text-[14px] font-bold text-ink">{workspaceName}</span>
               <span className="inline-flex items-center gap-0.5 rounded-full bg-navy/85 px-1.5 py-px text-[10px] font-semibold text-white">
                 <Sparkles className="h-2.5 w-2.5" />
                 {planLabel}
               </span>
             </div>
-            <div className="truncate text-[11px] text-muted">demo@creatiscout.example</div>
+            <div className="truncate text-[11px] text-muted">{email}</div>
           </div>
         </div>
 
@@ -145,7 +161,14 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
 
         <div className="my-1 h-px bg-border" />
 
-        <MenuItem icon={<LogOut className="h-3.5 w-3.5" />} label={t("account.logout")} />
+        <MenuItem
+          icon={<LogOut className="h-3.5 w-3.5" />}
+          label={t("account.logout")}
+          onClick={() => {
+            logout();
+            router.replace("/login");
+          }}
+        />
       </PopoverContent>
     </Popover>
   );

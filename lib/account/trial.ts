@@ -10,14 +10,14 @@ export type PlusTrial = {
 
 export function getOrCreatePlusTrial(now = new Date()): PlusTrial | null {
   if (typeof window === "undefined") return null;
+  const currentPlan = window.localStorage.getItem(EMPLOYEE_PLAN_KEY);
+  if (currentPlan !== "plus") return null;
   const stored = window.localStorage.getItem(PLUS_TRIAL_KEY);
   if (stored) {
     try {
       const parsed = JSON.parse(stored) as PlusTrial;
       if (parsed.plan === "plus" && parsed.startedAt && parsed.endsAt) {
-        const currentPlan = window.localStorage.getItem(EMPLOYEE_PLAN_KEY);
         const expired = new Date(parsed.endsAt).getTime() <= now.getTime();
-        if (!currentPlan) window.localStorage.setItem(EMPLOYEE_PLAN_KEY, expired ? "free" : "plus");
         if (expired && currentPlan === "plus")
           window.localStorage.setItem(EMPLOYEE_PLAN_KEY, "free");
         return parsed;
@@ -34,7 +34,6 @@ export function getOrCreatePlusTrial(now = new Date()): PlusTrial | null {
     endsAt: endsAt.toISOString(),
   };
   window.localStorage.setItem(PLUS_TRIAL_KEY, JSON.stringify(trial));
-  window.localStorage.setItem(EMPLOYEE_PLAN_KEY, "plus");
   return trial;
 }
 
