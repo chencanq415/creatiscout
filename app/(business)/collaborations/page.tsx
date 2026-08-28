@@ -14,14 +14,11 @@ type CollaborationStage = "aiMatching" | "shortlist" | "outreach" | "offer" | "c
 const L = {
   eyebrow: { zh: "CAMPAIGN × CREATOR", en: "CAMPAIGN × CREATOR" },
   title: { zh: "合作管理", en: "Collaboration" },
-  subtitle: { zh: "集中查看并推进所有 Campaign 与达人的合作进度。", en: "Manage every campaign × creator relationship in one place." },
-  allCampaigns: { zh: "全部 Campaign", en: "All campaigns" },
+  subtitle: { zh: "集中查看并推进所有营销活动与达人的合作进度。", en: "Manage every campaign × creator relationship in one place." },
+  allCampaigns: { zh: "全部营销活动", en: "All campaigns" },
   allStages: { zh: "全部阶段", en: "All stages" },
-  search: { zh: "搜索达人或 Campaign…", en: "Search creator or campaign…" },
-  activeCollaborations: { zh: "进行中的合作", en: "Active collaborations" },
-  dueThisWeek: { zh: "本周到期", en: "Due this week" },
-  creators: { zh: "合作达人", en: "Creators" },
-  campaign: { zh: "Campaign", en: "Campaign" },
+  search: { zh: "搜索达人或营销活动…", en: "Search creator or campaign…" },
+  campaign: { zh: "营销活动", en: "Campaign" },
   creator: { zh: "达人", en: "Creator" },
   stage: { zh: "当前阶段", en: "Current stage" },
   deliverable: { zh: "交付内容", en: "Deliverable" },
@@ -31,68 +28,67 @@ const L = {
   action: { zh: "操作", en: "Action" },
   open: { zh: "打开", en: "Open" },
   noResults: { zh: "没有符合当前条件的合作记录", en: "No collaborations match these filters" },
-  aiMatching: { zh: "AI 匹配池", en: "AI Match Pool" },
+  aiMatching: { zh: "智能匹配", en: "Matching" },
   shortlist: { zh: "候选达人", en: "Shortlist" },
   outreach: { zh: "达人建联", en: "Outreach" },
-  offer: { zh: "合作报价", en: "Offer" },
-  confirmed: { zh: "确认合作", en: "Confirmed" },
-  draft: { zh: "内容草稿", en: "Draft" },
+  offer: { zh: "议价中", en: "Negotiation" },
+  confirmed: { zh: "确认合作", en: "Offer" },
+  draft: { zh: "稿件创作", en: "Draft" },
   publication: { zh: "作品发布", en: "Publication" },
-  payment: { zh: "付款", en: "Payment" },
-  tracking: { zh: "效果追踪", en: "Performance Tracking" },
+  payment: { zh: "款项结算", en: "Payment" },
+  tracking: { zh: "效果追踪", en: "Tracking" },
 } as const;
 
 const stages: CollaborationStage[] = ["aiMatching", "shortlist", "outreach", "offer", "confirmed", "draft", "publication", "payment", "tracking"];
 const stageLabels = { aiMatching: L.aiMatching, shortlist: L.shortlist, outreach: L.outreach, offer: L.offer, confirmed: L.confirmed, draft: L.draft, publication: L.publication, payment: L.payment, tracking: L.tracking };
 const stageTone: Record<CollaborationStage, "gray" | "blue" | "amber" | "teal" | "pink" | "lavender"> = { aiMatching: "lavender", shortlist: "gray", outreach: "blue", offer: "amber", confirmed: "teal", draft: "lavender", publication: "pink", payment: "amber", tracking: "teal" };
+const stageVolumes: Record<CollaborationStage, number> = { aiMatching: 32, shortlist: 6, outreach: 4, offer: 3, confirmed: 5, draft: 3, publication: 2, payment: 2, tracking: 7 };
 
 export default function CollaborationsPage() {
   const l = useLoc();
   const campaigns = useUIStore((state) => state.campaigns);
   const [campaignFilter, setCampaignFilter] = useState("all");
-  const [stageFilter, setStageFilter] = useState<CollaborationStage | "all">("all");
+  const [stageFilter, setStageFilter] = useState<CollaborationStage>("outreach");
   const [query, setQuery] = useState("");
 
-  const rows = useMemo(() => creators.map((creator, index) => {
-    const campaign = campaigns[index % Math.min(campaigns.length, 3)];
-    const stage = stages[index % stages.length];
-    return {
-      id: `${campaign?.id}-${creator.id}`,
-      campaign,
-      creator,
-      stage,
-      deliverable: ["TikTok Video × 2", "Instagram Reel × 1", "RedNote Post × 2", "YouTube Integration × 1"][index % 4],
-      dueDate: ["Aug 20", "Aug 23", "Aug 27", "Sep 02"][index % 4],
-      updated: ["12 min", "2 hr", "Yesterday", "3 days"][index % 4],
-    };
-  }).filter((row) => row.campaign), [campaigns]);
+  const rows = useMemo(() => stages.flatMap((stage, stageIndex) => Array.from({ length: stageVolumes[stage] }, (_, index) => {
+    const creator = creators[(index + stageIndex) % creators.length];
+    const campaign = campaigns[(index + stageIndex) % Math.max(campaigns.length, 1)];
+    return { id: `${stage}-${index}-${creator.id}`, campaign, creator, stage, deliverable: ["TikTok Video × 2", "Instagram Reel × 1", "RedNote Post × 2", "YouTube Integration × 1"][index % 4], dueDate: ["Aug 20", "Aug 23", "Aug 27", "Sep 02"][index % 4], updated: ["12 min", "2 hr", "Yesterday", "3 days"][index % 4] };
+  })).filter((row) => row.campaign), [campaigns]);
 
   const filteredRows = rows.filter((row) => {
     const text = `${row.creator.name} ${row.creator.handle} ${l(row.campaign.name)} ${l(row.campaign.brand)}`.toLowerCase();
-    return (campaignFilter === "all" || row.campaign.id === campaignFilter) && (stageFilter === "all" || row.stage === stageFilter) && (!query || text.includes(query.toLowerCase()));
+    return (campaignFilter === "all" || row.campaign.id === campaignFilter) && row.stage === stageFilter && (!query || text.includes(query.toLowerCase()));
   });
 
   return (
-    <div className="min-h-full bg-surface px-6 py-7 lg:px-8">
+    <div className="min-h-full bg-surface px-6 py-5 lg:px-8">
       <div className="w-full">
         <div>
           <h1 className="text-[30px] font-bold tracking-[-0.03em] text-navy">{l(L.title)}</h1>
           <p className="mt-1.5 text-[13px] text-slate">{l(L.subtitle)}</p>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <SummaryCard icon={<Handshake className="h-4 w-4" />} label={l(L.activeCollaborations)} value={String(rows.filter((row) => row.stage !== "tracking").length)} />
-          <SummaryCard icon={<CalendarClock className="h-4 w-4" />} label={l(L.dueThisWeek)} value="4" />
-          <SummaryCard icon={<Users className="h-4 w-4" />} label={l(L.creators)} value={String(new Set(rows.map((row) => row.creator.id)).size)} />
-        </div>
+        <nav className="mt-5" aria-label="Collaboration progress">
+          <div className="flex w-full min-w-0 items-center py-1">
+            {stages.map((stage, index) => {
+              const active = stageFilter === stage;
+              return <button key={stage} onClick={() => setStageFilter(stage)} style={{ clipPath: "polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)" }} className={cn("relative flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 px-2 text-[10.5px] font-semibold transition-colors", index > 0 && "-ml-2.5", active ? "z-10 bg-brand text-white" : "bg-page text-slate hover:bg-soft-pink/60 hover:text-ink")}>
+                <span className="whitespace-nowrap">{l(stageLabels[stage])}</span>
+                <span className={cn("rounded-full px-1.5 py-0.5 text-[8px]", active ? "bg-white/20 text-white" : "bg-white text-muted")}>{stageVolumes[stage]}</span>
+              </button>;
+            })}
+          </div>
+        </nav>
 
-        <div className="mt-5 flex flex-wrap gap-2 rounded-[13px] border border-border bg-surface p-4 shadow-card">
+        <div className="mt-5 flex flex-wrap gap-2 rounded-[13px] border border-border bg-surface p-4">
           <div className="relative min-w-[260px] flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={l(L.search)} className="h-10 w-full rounded-[9px] border border-border bg-page pl-9 pr-3 text-[12px] outline-none focus:border-brand/40" /></div>
           <Select value={campaignFilter} onChange={setCampaignFilter} label={l(L.allCampaigns)} options={campaigns.map((campaign) => ({ value: campaign.id, label: l(campaign.name) }))} />
-          <Select value={stageFilter} onChange={(value) => setStageFilter(value as CollaborationStage | "all")} label={l(L.allStages)} options={stages.map((stage) => ({ value: stage, label: l(stageLabels[stage]) }))} />
+          <div className="flex h-10 items-center rounded-[9px] bg-soft-pink px-3 text-[11px] font-semibold text-brand">{l(stageLabels[stageFilter])} · {filteredRows.length}</div>
         </div>
 
-        <div className="mt-4 overflow-hidden rounded-[14px] border border-border bg-surface shadow-card">
+        <div className="mt-4 overflow-hidden rounded-[14px] border border-border bg-surface">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1050px] text-left">
               <thead className="border-b border-border bg-surface-warm/70 text-[10px] font-semibold uppercase tracking-wider text-muted"><tr><th className="px-5 py-3">{l(L.creator)}</th><th className="px-4 py-3">{l(L.campaign)}</th><th className="px-4 py-3">{l(L.stage)}</th><th className="px-4 py-3">{l(L.deliverable)}</th><th className="px-4 py-3">{l(L.compensation)}</th><th className="px-4 py-3">{l(L.dueDate)}</th><th className="px-4 py-3">{l(L.updated)}</th><th className="px-4 py-3 text-right">{l(L.action)}</th></tr></thead>

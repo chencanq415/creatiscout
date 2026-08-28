@@ -36,7 +36,7 @@ const L = {
   kpiOpenRate: { zh: "打开率", en: "Open rate" },
   kpiReplyRate: { zh: "回复率", en: "Reply rate" },
   kpiAvgReply: { zh: "平均回复时长", en: "Avg reply" },
-  perCampaign: { zh: "分 campaign 明细", en: "Per-campaign breakdown" },
+  perCampaign: { zh: "分营销活动明细", en: "Per-campaign breakdown" },
   sent: { zh: "已发", en: "Sent" },
   reply: { zh: "回复", en: "Reply" },
 } as const;

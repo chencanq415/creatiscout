@@ -17,29 +17,29 @@ import { useRouter } from "next/navigation";
 
 const L = {
   eyebrow: { zh: "创建方式", en: "CREATE CAMPAIGN" },
-  title: { zh: "如何创建这个 Campaign？", en: "How would you like to create this campaign?" },
+  title: { zh: "如何创建这个营销活动？", en: "How would you like to create this campaign?" },
   subtitle: {
     zh: "选择最适合你当前素材的方式，后续都可以继续编辑。",
     en: "Choose the best starting point. You can edit everything later.",
   },
   recommended: { zh: "推荐", en: "RECOMMENDED" },
-  aiTitle: { zh: "通过 AI 创建 Campaign", en: "Create with AI" },
+  aiTitle: { zh: "通过 AI 创建营销活动", en: "Create with AI" },
   aiDescription: {
-    zh: "像和同事沟通一样描述需求，AI 会追问并整理成完整 Campaign。",
+    zh: "像和同事沟通一样描述需求，AI 会追问并整理成完整营销活动。",
     en: "Describe the campaign naturally. AI will ask follow-up questions and structure the details.",
   },
   conversation: { zh: "对话创建", en: "Conversational" },
   images: { zh: "支持图片", en: "Images" },
   files: { zh: "支持文件", en: "Files" },
   aiAction: { zh: "开始与 AI 对话", en: "Start with AI" },
-  briefTitle: { zh: "上传 Brief 解析为 Campaign", en: "Import a campaign brief" },
+  briefTitle: { zh: "上传 Brief 解析为营销活动", en: "Import a campaign brief" },
   briefDescription: {
     zh: "上传 PDF、Word、PPT 或图片，提取品牌、周期、平台和达人要求。",
     en: "Upload a PDF, document, deck, or image to extract campaign requirements.",
   },
-  manualTitle: { zh: "手动添加 Campaign", en: "Add campaign manually" },
+  manualTitle: { zh: "手动添加营销活动", en: "Add campaign manually" },
   manualDescription: {
-    zh: "从空白表单开始，逐项填写 Campaign 信息。",
+    zh: "从空白表单开始，逐项填写营销活动信息。",
     en: "Start from a blank form and enter each campaign detail.",
   },
 } as const;

@@ -15,7 +15,7 @@ import { StepTracking } from "./steps/step-tracking";
 
 const L = {
   collaboration: { zh: "协作进度", en: "Collaboration" },
-  collaborationDesc: { zh: "Campaign × 达人完整执行流程", en: "Campaign × creator delivery workflow" },
+  collaborationDesc: { zh: "营销活动 × 达人完整执行流程", en: "Campaign × creator delivery workflow" },
   aiMatching: { zh: "AI 匹配池", en: "AI Match Pool" },
   shortlist: { zh: "候选达人", en: "Shortlist" },
   outreach: { zh: "达人建联", en: "Outreach" },

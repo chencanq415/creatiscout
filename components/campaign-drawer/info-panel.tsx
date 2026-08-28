@@ -1,234 +1,42 @@
 "use client";
 
+import { Children, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useLoc, useLocale } from "@/lib/i18n/use-i18n";
 import { useUIStore } from "@/lib/store/ui-store";
-import type { Campaign, CampaignCurrency, CampaignGoal } from "@/lib/types";
-import { cn, formatRelative } from "@/lib/utils";
-import {
-  CalendarRange,
-  EyeOff,
-  FileText,
-  Gift,
-  Globe2,
-  Languages,
-  Target,
-  Tags,
-  Users,
-  WalletCards,
-} from "lucide-react";
+import type { Campaign, CampaignCurrency, CampaignGoal, CampaignGiftCard, CampaignProduct } from "@/lib/types";
+import { cn, formatRelative, getBrandCoverTheme } from "@/lib/utils";
+import { CalendarRange, ChevronRight, EyeOff, FileText, Gift, Globe2, Languages, Link2, Package, Percent, Tags, Target, WalletCards, X } from "lucide-react";
 
-const L = {
-  campaignDetails: { zh: "Campaign 详情", en: "Campaign Details" },
-  hideInfo: { zh: "隐藏 Campaign 信息", en: "Hide campaign details" },
-  lastUpdated: { zh: "最后更新", en: "Updated" },
-  basicInfo: { zh: "基础信息", en: "Basic Information" },
-  brand: { zh: "品牌", en: "Brand" },
-  goal: { zh: "目标", en: "Goal" },
-  category: { zh: "品类", en: "Category" },
-  period: { zh: "周期", en: "Duration" },
-  description: { zh: "Campaign 描述", en: "Description" },
-  compensation: { zh: "合作报酬", en: "Compensation" },
-  flatFee: { zh: "固定费用", en: "Flat fee" },
-  totalBudget: { zh: "总预算", en: "Total budget" },
-  commission: { zh: "佣金", en: "Commission" },
-  freeProduct: { zh: "免费产品", en: "Free product" },
-  giftCard: { zh: "礼品卡", en: "Gift card" },
-  creatorRequirements: { zh: "达人要求", en: "Creator Requirements" },
-  regions: { zh: "地区", en: "Regions" },
-  languages: { zh: "语言", en: "Languages" },
-  minimumFollowers: { zh: "最低粉丝数", en: "Minimum followers" },
-  contentTypes: { zh: "内容类型", en: "Content types" },
-  termsAttachments: { zh: "条款与附件", en: "Terms & Attachments" },
-  terms: { zh: "合作条款", en: "Terms & conditions" },
-  attachments: { zh: "附件", en: "Attachments" },
-  none: { zh: "未填写", en: "Not provided" },
-  statusDraft: { zh: "草稿", en: "Draft" },
-  statusActive: { zh: "进行中", en: "Active" },
-  statusPaused: { zh: "已暂停", en: "Paused" },
-  statusClosed: { zh: "已结束", en: "Closed" },
-} as const;
-
-const goalLabels: Record<CampaignGoal, { zh: string; en: string }> = {
-  brand_awareness: { zh: "品牌认知", en: "Brand awareness" },
-  content_production: { zh: "内容生产", en: "Content production" },
-  conversion_sales: { zh: "转化 / 销售", en: "Conversion / sales" },
-  engagement: { zh: "互动增长", en: "Engagement" },
-};
+const L = { hide: { zh: "隐藏活动信息", en: "Hide campaign details" }, updated: { zh: "最后更新", en: "Updated" }, overview: { zh: "基础信息", en: "Basic information" }, goal: { zh: "营销目标", en: "Goal" }, category: { zh: "品类", en: "Category" }, period: { zh: "活动有效期", en: "Duration" }, description: { zh: "活动描述", en: "Description" }, compensation: { zh: "合作方式", en: "Compensation" }, flatFee: { zh: "固定费用", en: "Flat fee" }, feeRange: { zh: "单位达人报价范围", en: "Creator fee range" }, totalBudget: { zh: "固定费用总预算", en: "Total flat-fee budget" }, commission: { zh: "佣金合作", en: "Commission" }, commissionPolicy: { zh: "佣金政策", en: "Commission policy" }, affiliateLink: { zh: "联盟链接", en: "Affiliate link" }, products: { zh: "产品寄送", en: "Products" }, giftCards: { zh: "礼品卡", en: "Gift cards" }, product: { zh: "产品", en: "Product" }, giftCard: { zh: "礼品卡", en: "Gift card" }, requirements: { zh: "达人要求", en: "Creator requirements" }, regions: { zh: "地区", en: "Regions" }, languages: { zh: "语言", en: "Languages" }, categories: { zh: "类型", en: "Categories" }, platforms: { zh: "平台要求", en: "Platform requirements" }, followerMinimum: { zh: "粉丝门槛", en: "Follower minimum" }, contentType: { zh: "内容类型", en: "Content type" }, notes: { zh: "备注", en: "Notes" }, materials: { zh: "合作细则与材料", en: "Terms & materials" }, terms: { zh: "合作细则", en: "Terms & conditions" }, files: { zh: "公开材料", en: "Materials" }, none: { zh: "未填写", en: "Not provided" }, draft: { zh: "草稿", en: "Draft" }, active: { zh: "进行中", en: "Active" }, paused: { zh: "已暂停", en: "Paused" }, closed: { zh: "已结束", en: "Closed" } } as const;
+const goals: Record<CampaignGoal, { zh: string; en: string }> = { brand_awareness: { zh: "品牌认知", en: "Brand awareness" }, content_production: { zh: "内容生产", en: "Content production" }, conversion_sales: { zh: "转化 / 销售", en: "Conversion / sales" }, engagement: { zh: "互动增长", en: "Engagement" } };
 
 export function CampaignInfoPanel({ campaign, standalone = false }: { campaign: Campaign; standalone?: boolean }) {
-  const l = useLoc();
-  const [locale] = useLocale();
-  const toggleInfo = useUIStore((s) => s.toggleCampaignInfo);
-  const requirements = campaign.creatorRequirements;
-
-  return (
-    <div className={cn(
-      "flex flex-col bg-surface",
-      standalone
-        ? "mx-auto w-full max-w-[920px] overflow-hidden rounded-[14px] border border-border shadow-card"
-        : "h-full overflow-y-auto border-r border-border",
-    )}>
-      <div className="border-b border-border px-6 py-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-brand">
-              {l(L.campaignDetails)}
-            </div>
-            <div className="mt-1.5 text-[20px] font-bold tracking-tight text-navy">
-              {l(campaign.name)}
-            </div>
-            <div className="mt-1 text-[12px] font-medium text-slate">{l(campaign.brand)}</div>
-          </div>
-          {!standalone && (
-            <button
-              type="button"
-              onClick={toggleInfo}
-              aria-label={l(L.hideInfo)}
-              title={l(L.hideInfo)}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition-colors hover:bg-surface-warm hover:text-ink"
-            >
-              <EyeOff className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-        <div className="mt-2.5 flex items-center gap-2">
-          <StatusBadge status={campaign.status} />
-          <span className="tabular text-[11px] text-muted">
-            {l(L.lastUpdated)} {formatRelative(campaign.updatedAt, locale)}
-          </span>
-        </div>
-      </div>
-
-      <Section title={l(L.basicInfo)}>
-        <FieldRow icon={<Target className="h-3.5 w-3.5 text-brand" />} label={l(L.goal)}>
-          {l(goalLabels[campaign.goal])}
-        </FieldRow>
-        <FieldRow icon={<Tags className="h-3.5 w-3.5 text-lavender-text" />} label={l(L.category)}>
-          {campaign.category}
-        </FieldRow>
-        <FieldRow icon={<CalendarRange className="h-3.5 w-3.5 text-teal-text" />} label={l(L.period)}>
-          <span className="tabular">{campaign.startAt} – {campaign.endAt}</span>
-        </FieldRow>
-        {campaign.description && (
-          <div className="rounded-[10px] bg-surface-warm p-3 text-[12px] leading-relaxed text-slate">
-            <div className="mb-1 font-semibold text-ink">{l(L.description)}</div>
-            {l(campaign.description)}
-          </div>
-        )}
-      </Section>
-
-      <Section title={l(L.compensation)}>
-        <CompensationDetails campaign={campaign} />
-      </Section>
-
-      <Section title={l(L.creatorRequirements)}>
-        <FieldRow icon={<Globe2 className="h-3.5 w-3.5 text-blue-text" />} label={l(L.regions)}>
-          {requirements.regions.join(", ") || l(L.none)}
-        </FieldRow>
-        <FieldRow icon={<Languages className="h-3.5 w-3.5 text-teal-text" />} label={l(L.languages)}>
-          {requirements.languages.join(", ") || l(L.none)}
-        </FieldRow>
-        <FieldRow icon={<Users className="h-3.5 w-3.5 text-lavender-text" />} label={l(L.minimumFollowers)}>
-          {requirements.minimumFollowers.toLocaleString()}
-        </FieldRow>
-        <FieldRow icon={<FileText className="h-3.5 w-3.5 text-amber-text" />} label={l(L.contentTypes)}>
-          {requirements.contentTypes.join(", ") || l(L.none)}
-        </FieldRow>
-      </Section>
-
-      <Section title={l(L.termsAttachments)}>
-        <div className="rounded-[10px] border border-border p-3">
-          <div className="text-[12px] font-semibold text-ink">{l(L.terms)}</div>
-          <div className="mt-1 text-[11px] leading-relaxed text-muted">
-            {campaign.termsAndConditions || l(L.none)}
-          </div>
-        </div>
-        <div className="mt-2 flex items-center justify-between text-[12px]">
-          <span className="text-muted">{l(L.attachments)}</span>
-          <span className="font-semibold text-ink">{campaign.attachments.length}</span>
-        </div>
-      </Section>
-
+  const l = useLoc(); const [locale] = useLocale(); const toggle = useUIStore((s) => s.toggleCampaignInfo); const r = campaign.creatorRequirements;
+  return <div className={cn("flex flex-col bg-surface", standalone ? "mx-auto w-full max-w-[1180px]" : "h-full overflow-y-auto border-r border-border")}>
+    <header className="relative overflow-hidden rounded-[16px] border border-border bg-gradient-to-br from-white via-white to-soft-pink/40 px-6 py-6 sm:px-7"><div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-brand/5 blur-2xl" /><div className="relative flex items-center justify-between gap-5"><div className="min-w-0 flex-1"><div className="mb-3 flex items-center gap-2"><StatusBadge status={campaign.status} /><span className="text-[10px] text-muted">{l(L.updated)} {formatRelative(campaign.updatedAt, locale)}</span></div><h2 className="truncate text-[25px] font-bold tracking-[-0.035em] text-navy">{l(campaign.name)}</h2><p className="mt-1.5 text-[12px] font-medium text-slate">{l(campaign.brand)}</p></div><div className="flex shrink-0 items-start gap-2"><CampaignCover campaign={campaign} />{!standalone && <button type="button" onClick={toggle} aria-label={l(L.hide)} className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-white/80 text-muted transition-colors hover:bg-white hover:text-ink"><EyeOff className="h-4 w-4" /></button>}</div></div></header>
+    <div className="grid gap-5 bg-surface pt-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(330px,0.85fr)]">
+      <div className="space-y-7"><DetailPanel icon={<FileText />} title={l(L.overview)}><div className="grid gap-2.5 sm:grid-cols-2"><OverviewItem icon={<Target />} label={l(L.goal)} value={l(goals[campaign.goal])} /><OverviewItem icon={<Tags />} label={l(L.category)} value={campaign.category} /><OverviewItem icon={<CalendarRange />} label={l(L.period)} value={`${campaign.startAt} — ${campaign.endAt}`} /><OverviewItem icon={<Target />} label={l({ zh: "活动状态", en: "Status" })} value={l({ draft: L.draft, active: L.active, paused: L.paused, closed: L.closed }[campaign.status])} /></div>{campaign.description && <div className="border-t border-border pt-4 text-[11px] leading-relaxed text-slate"><div className="mb-1 text-[10px] font-medium text-muted">{l(L.description)}</div>{l(campaign.description)}</div>}</DetailPanel><DetailPanel icon={<Globe2 />} title={l(L.requirements)}><div className="grid divide-x divide-border rounded-[10px] bg-surface-warm sm:grid-cols-3"><RequirementTile icon={<Globe2 />} label={l(L.regions)} values={r.regions} /><RequirementTile icon={<Languages />} label={l(L.languages)} values={r.languages} /><RequirementTile icon={<Tags />} label={l(L.categories)} values={r.categories} /></div><PlatformRequirements campaign={campaign} /></DetailPanel></div>
+      <div className="space-y-7"><DetailPanel icon={<WalletCards />} title={l(L.compensation)}><CompensationDetails campaign={campaign} /></DetailPanel><DetailPanel icon={<FileText />} title={l(L.materials)}><div className="rounded-[10px] bg-surface-warm px-3.5 py-3"><div className="mb-1 text-[11px] font-semibold text-ink">{l(L.terms)}</div><div className="text-[11px] leading-relaxed text-slate">{campaign.termsAndConditions || l(L.none)}</div></div><div><div className="mb-2 text-[11px] font-semibold text-ink">{l(L.files)}</div>{campaign.attachments.length ? <div className="flex flex-wrap gap-2">{campaign.attachments.map((a) => <div key={a.id} className="inline-flex items-center gap-2 rounded-[8px] bg-surface-warm px-2.5 py-2 text-[10.5px] font-medium text-slate"><FileText className="h-3.5 w-3.5 text-brand" />{a.name}</div>)}</div> : <div className="text-[11px] text-muted">{l(L.none)}</div>}</div></DetailPanel></div>
     </div>
-  );
+  </div>;
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="border-b border-border px-6 py-5 last:border-b-0">
-      <div className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted">{title}</div>
-      <div className="space-y-3">{children}</div>
-    </section>
-  );
-}
+function CampaignCover({ campaign }: { campaign: Campaign }) { const l = useLoc(); const brand = l(campaign.brand); return campaign.image ? <img src={campaign.image} alt="" className="h-28 w-36 rounded-[15px] object-cover" /> : <div style={getBrandCoverTheme(brand)} className="relative flex h-28 w-36 overflow-hidden rounded-[15px] px-4"><span className="absolute -right-5 -top-5 h-16 w-16 rounded-full bg-white/25" /><span className="relative m-auto text-center text-[12px] font-bold leading-[15px]">{brand}</span></div>; }
+function DetailPanel({ title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) { return <section className="rounded-[14px] border border-border bg-white p-4"><h3 className="mb-4 text-[13px] font-semibold text-ink">{title}</h3><div className="space-y-4">{children}</div></section>; }
+function Section({ title, children }: { title: string; children: React.ReactNode }) { return <section className="border-b border-border px-6 py-6 last:border-b-0 sm:px-7"><div className="mb-4 text-[10px] font-bold uppercase tracking-[0.12em] text-muted">{title}</div><div className="space-y-3">{children}</div></section>; }
+function InformationRow({ label, value }: { label: string; value: string }) { return <div className="grid grid-cols-[124px_1fr] gap-4 px-4 py-3 text-[11px]"><span className="text-muted">{label}</span><span className="font-medium text-ink">{value}</span></div>; }
+function OverviewItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) { return <div className="rounded-[10px] bg-surface-warm px-3.5 py-3.5"><div className="flex items-center gap-1.5 text-[10px] text-muted"><span className="text-slate [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>{label}</div><div className="mt-2 text-[11px] font-semibold text-ink">{value}</div></div>; }
+function RequirementTile({ icon, label, values }: { icon: React.ReactNode; label: string; values: string[] }) { const l = useLoc(); return <div className="px-3.5 py-3"><div className="flex items-center gap-1.5 text-[9.5px] text-muted"><span className="text-slate [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>{label}</div><div className="mt-2 flex flex-wrap gap-1.5">{values.length ? values.map((value) => <span key={value} className="rounded-full bg-surface-warm px-2 py-0.5 text-[9.5px] font-medium text-slate">{value}</span>) : <span className="text-[10px] text-muted">{l(L.none)}</span>}</div></div>; }
+function money(currency: CampaignCurrency, value: number) { return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(value); }
 
-function FieldRow({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-[92px_1fr] items-start gap-3">
-      <div className="flex items-center gap-1.5 pt-0.5 text-[11px] text-muted">{icon}<span>{label}</span></div>
-      <div className="text-[12px] font-medium leading-relaxed text-ink">{children}</div>
-    </div>
-  );
-}
-
-function money(currency: CampaignCurrency, value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
-}
-
-function CompensationDetails({ campaign }: { campaign: Campaign }) {
-  const l = useLoc();
-  const compensation = campaign.compensation;
-  return (
-    <div className="space-y-2">
-      {compensation.flatFee && (
-        <CompensationRow icon={<WalletCards className="h-4 w-4" />} title={l(L.flatFee)}>
-          {money(compensation.flatFee.currency, compensation.flatFee.minFee)} – {money(compensation.flatFee.currency, compensation.flatFee.maxFee)}
-          <span className="mt-0.5 block text-[10px] font-normal text-muted">{l(L.totalBudget)} · {money(compensation.flatFee.currency, compensation.flatFee.totalBudget)}</span>
-        </CompensationRow>
-      )}
-      {compensation.commission && (
-        <CompensationRow icon={<Target className="h-4 w-4" />} title={l(L.commission)}>
-          {compensation.commission.rate}%
-        </CompensationRow>
-      )}
-      {compensation.freeProducts.length > 0 && (
-        <CompensationRow icon={<Gift className="h-4 w-4" />} title={l(L.freeProduct)}>
-          {compensation.freeProducts.map((product) => product.name).join(", ")}
-        </CompensationRow>
-      )}
-      {compensation.giftCard && (
-        <CompensationRow icon={<Gift className="h-4 w-4" />} title={l(L.giftCard)}>
-          {compensation.giftCard.name} · {money(compensation.giftCard.currency, compensation.giftCard.value)}
-        </CompensationRow>
-      )}
-      {!compensation.flatFee && !compensation.commission && compensation.freeProducts.length === 0 && !compensation.giftCard && (
-        <div className="text-[12px] text-muted">{l(L.none)}</div>
-      )}
-    </div>
-  );
-}
-
-function CompensationRow({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2.5 rounded-[10px] bg-surface-warm p-3">
-      <span className="mt-0.5 text-brand">{icon}</span>
-      <div className="min-w-0 flex-1">
-        <div className="text-[10px] font-semibold uppercase tracking-wide text-muted">{title}</div>
-        <div className="mt-0.5 text-[12px] font-semibold text-ink">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: Campaign["status"] }) {
-  const l = useLoc();
-  const map = {
-    draft: { tone: "gray", label: L.statusDraft },
-    active: { tone: "teal", label: L.statusActive },
-    paused: { tone: "amber", label: L.statusPaused },
-    closed: { tone: "blue", label: L.statusClosed },
-  } as const;
-  const meta = map[status];
-  return <Badge tone={meta.tone}>{l(meta.label)}</Badge>;
-}
+function CompensationDetails({ campaign }: { campaign: Campaign }) { const l = useLoc(); const c = campaign.compensation; const cards = c.giftCards?.length ? c.giftCards : c.giftCard ? [c.giftCard] : []; const monetary = c.flatFee || c.commission; return <div className="space-y-5">{monetary && <div className="space-y-4">{c.flatFee && <MethodCard icon={<WalletCards />} title={l(L.flatFee)}><Detail label={l(L.feeRange)} value={`${money(c.flatFee.currency, c.flatFee.minFee)} — ${money(c.flatFee.currency, c.flatFee.maxFee)}`} /><Detail label={l(L.totalBudget)} value={money(c.flatFee.currency, c.flatFee.totalBudget)} /></MethodCard>}{c.commission && <MethodCard icon={<Percent />} title={l(L.commission)}><Detail label={l(L.commissionPolicy)} value={c.commission.perOrderAmount ? `${money(c.commission.currency ?? "USD", c.commission.perOrderAmount)} / order` : `${c.commission.rate}%`} />{c.commission.affiliateLink && <Detail label={l(L.affiliateLink)} value={<span className="inline-flex max-w-full items-center gap-1.5 text-brand"><Link2 className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{c.commission.affiliateLink}</span></span>} />}</MethodCard>}</div>}{c.freeProducts.length > 0 && <OfferingSection icon={<Package className="h-4 w-4" />} title={l(L.products)}>{c.freeProducts.map((item) => <ProductCard key={item.id} item={item} />)}</OfferingSection>}{cards.length > 0 && <OfferingSection icon={<Gift className="h-4 w-4" />} title={l(L.giftCards)}>{cards.map((item, index) => <GiftCard key={item.id ?? index} item={item} />)}</OfferingSection>}{!monetary && !c.freeProducts.length && !cards.length && <div className="text-[12px] text-muted">{l(L.none)}</div>}</div>; }
+function MethodCard({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) { return <div><div className="mb-2.5 flex items-center gap-2 text-[11px] font-semibold text-ink"><span className="text-slate [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>{title}</div><div className="divide-y divide-border rounded-[10px] bg-surface-warm px-3.5">{children}</div></div>; }
+function Detail({ label, value }: { label: string; value: React.ReactNode }) { return <div className="flex items-start justify-between gap-4 py-2.5 text-[10.5px]"><span className="shrink-0 text-muted">{label}</span><span className="min-w-0 text-right font-semibold text-ink">{value}</span></div>; }
+function OfferingSection({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) { const railRef = useRef<HTMLDivElement>(null); const hasMore = Children.count(children) > 1; return <div><div className="mb-2.5 flex items-center gap-2 text-[11px] font-semibold text-ink"><span className="text-slate [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>{title}</div><div className="relative"><div ref={railRef} className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{children}</div>{hasMore && <button type="button" aria-label="View more" onClick={() => railRef.current?.scrollBy({ left: 280, behavior: "smooth" })} className="absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate transition-colors hover:bg-soft-pink hover:text-brand"><ChevronRight className="h-4 w-4" /></button>}</div></div>; }
+function ProductCard({ item }: { item: CampaignProduct }) { const [open, setOpen] = useState(false); return <><div className="flex h-[126px] w-[360px] shrink-0 gap-3.5 rounded-[12px] bg-surface-warm p-3"><OfferingImage kind="product" image={item.image} label={item.name} /><div className="min-w-0 flex flex-1 flex-col py-0.5"><div className="truncate text-[11px] font-semibold text-ink">{item.name}</div><span className="mt-1 text-[10px] font-bold text-brand">{money(item.currency, item.value)}</span>{item.description && <p className="mt-2 line-clamp-2 text-[10px] leading-relaxed text-slate">{item.description}</p>}<button type="button" onClick={() => setOpen(true)} className="mt-auto w-fit text-[9.5px] font-medium text-brand hover:text-brand-hover">Details →</button></div></div>{open && <OfferDetails item={item} kind="product" onClose={() => setOpen(false)} />}</>; }
+function GiftCard({ item }: { item: CampaignGiftCard }) { const [open, setOpen] = useState(false); return <><div className="flex h-[126px] w-[360px] shrink-0 gap-3.5 rounded-[12px] bg-surface-warm p-3"><OfferingImage kind="gift" image={item.image} label={item.name} /><div className="min-w-0 flex flex-1 flex-col py-0.5"><div className="truncate text-[11px] font-semibold text-ink">{item.name}</div><span className="mt-1 text-[10px] font-bold text-brand">{money(item.currency, item.value)}</span>{item.description && <p className="mt-2 line-clamp-2 text-[10px] leading-relaxed text-slate">{item.description}</p>}<button type="button" onClick={() => setOpen(true)} className="mt-auto w-fit text-[9.5px] font-medium text-brand hover:text-brand-hover">Details →</button></div></div>{open && <OfferDetails item={item} kind="gift" onClose={() => setOpen(false)} />}</>; }
+function OfferDetails({ item, kind, onClose }: { item: CampaignProduct | CampaignGiftCard; kind: "product" | "gift"; onClose: () => void }) { const l = useLoc(); const product = item as CampaignProduct; return <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/25 p-4" onMouseDown={onClose}><div className="w-full max-w-[440px] rounded-[16px] border border-border bg-white p-5" onMouseDown={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4"><div><div className="text-[10px] font-medium uppercase tracking-wider text-muted">{kind === "product" ? l(L.product) : l(L.giftCard)}</div><h4 className="mt-1 text-[17px] font-semibold text-ink">{item.name}</h4></div><button type="button" onClick={onClose} className="rounded-[7px] p-1 text-muted hover:bg-surface-warm"><X className="h-4 w-4" /></button></div><div className="mt-4 flex gap-4"><OfferingImage kind={kind} image={item.image} label={item.name} /><div><div className="text-[14px] font-bold text-brand">{money(item.currency, item.value)}</div>{product.productLink && <div className="mt-2 flex items-center gap-1 text-[10px] text-slate"><Link2 className="h-3.5 w-3.5" />{product.productLink}</div>}</div></div>{item.description && <p className="mt-4 border-t border-border pt-4 text-[12px] leading-relaxed text-slate">{item.description}</p>}</div></div>; }
+function OfferingImage({ kind, image, label }: { kind: "product" | "gift"; image?: string; label: string }) { return image ? <img src={image} alt="" className={cn("shrink-0 rounded-[8px] object-cover", kind === "product" ? "h-[100px] w-[76px]" : "my-auto h-[74px] w-[112px]")} /> : <div className={cn("relative flex shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-gradient-to-br from-brand/15 via-soft-pink to-brand/10 text-brand", kind === "product" ? "h-[100px] w-[76px]" : "my-auto h-[74px] w-[112px]")}><Gift className="relative h-5 w-5" /><span className="sr-only">{label}</span></div>; }
+function PlatformRequirements({ campaign }: { campaign: Campaign }) { const l = useLoc(); const items = campaign.creatorRequirements.deliverables; if (!items?.length) return <div className="pt-1 text-[11px] text-slate">{campaign.creatorRequirements.contentTypes.join(" · ") || l(L.none)}</div>; return <div><div className="mb-2 pt-1 text-[10.5px] font-semibold text-ink">{l(L.platforms)}</div><div className="overflow-hidden rounded-[9px] bg-surface-warm"><div className="grid grid-cols-[0.9fr_1fr_1.3fr_2fr] gap-3 border-b border-border/70 px-3.5 py-2 text-[8.5px] font-medium uppercase tracking-wider text-muted"><span>Platform</span><span>{l(L.followerMinimum)}</span><span>{l(L.contentType)}</span><span>{l(L.notes)}</span></div>{items.map((item) => <div key={item.platform} className="grid grid-cols-[0.9fr_1fr_1.3fr_2fr] gap-3 border-b border-border/70 px-3.5 py-2.5 text-[10px] last:border-b-0"><span className="font-medium text-ink">{item.platform}</span><span className="text-ink">{item.minimumFollowers ? `${item.minimumFollowers.toLocaleString()}+` : l(L.none)}</span><span className="text-slate">{item.contentTypes.join(" · ") || l(L.none)}</span><span className="leading-relaxed text-slate">{item.notes || "—"}</span></div>)}</div></div>; }
+function StatusBadge({ status }: { status: Campaign["status"] }) { const l = useLoc(); const map = { draft: { tone: "gray", label: L.draft }, active: { tone: "teal", label: L.active }, paused: { tone: "amber", label: L.paused }, closed: { tone: "blue", label: L.closed } } as const; const meta = map[status]; return <Badge tone={meta.tone}>{l(meta.label)}</Badge>; }

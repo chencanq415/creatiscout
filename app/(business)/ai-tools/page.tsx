@@ -17,7 +17,7 @@ const L = {
 	eyebrow: { zh: "AI POWERED WORKSPACE", en: "AI POWERED WORKSPACE" },
 	title: { zh: "AI Tools", en: "AI Tools" },
 	subtitle: {
-		zh: "集中使用洞察、内容生成和自动化工具，让 Campaign 从策略到执行更快完成。",
+		zh: "集中使用洞察、内容生成和自动化工具，让营销活动从策略到执行更快完成。",
 		en: "A single place for intelligence, content generation, and campaign automation tools.",
 	},
 	available: { zh: "可使用", en: "Available" },
@@ -30,7 +30,7 @@ const tools = [
 	{
 		title: { zh: "Competitor Tracking", en: "Competitor Tracking" },
 		description: {
-			zh: "追踪竞品达人策略、内容趋势与区域表现，发现可执行的 Campaign 机会。",
+			zh: "追踪竞品达人策略、内容趋势与区域表现，发现可执行的营销活动机会。",
 			en: "Track competitor creator strategies, content trends, and market performance.",
 		},
 		icon: Binoculars,
@@ -64,7 +64,7 @@ const tools = [
 	{
 		title: { zh: "Brief Analyzer", en: "Brief Analyzer" },
 		description: {
-			zh: "从 PDF、文档、表格或图片中提取 Campaign 目标、预算和达人要求。",
+			zh: "从 PDF、文档、表格或图片中提取营销活动目标、预算和达人要求。",
 			en: "Extract campaign goals, budget, platforms, and creator requirements from a brief.",
 		},
 		icon: FileSearch,

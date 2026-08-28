@@ -19,7 +19,7 @@ import Link from "next/link";
 const L = {
   title: { zh: "快速上手", en: "Onboarding" },
   description: {
-    zh: "先雇佣数字员工，再完成 Campaign 创建、达人匹配、合作跟进与效果复盘。",
+    zh: "先雇佣数字员工，再完成营销活动创建、达人匹配、合作跟进与效果复盘。",
     en: "Hire your digital employee, then complete campaign setup, creator matching, collaboration follow-up, and reporting.",
   },
   progress: { zh: "设置进度", en: "Setup progress" },
@@ -32,7 +32,7 @@ const L = {
     en: "Feels too complex? Let AI set it up for you",
   },
   aiDescription: {
-    zh: "告诉 Plus 数字员工你的品牌、产品和目标，它会通过对话帮你创建 Campaign、匹配达人、自动跟进合作并生成复盘报告。",
+    zh: "告诉 Plus 数字员工你的品牌、产品和目标，它会通过对话帮你创建营销活动、匹配达人、自动跟进合作并生成复盘报告。",
     en: "Tell your Plus digital employee about your brand, product, and goals. It will create the campaign, match creators, follow up on collaborations, and generate a report.",
   },
   aiAction: { zh: "让 AI 帮我开始", en: "Start with AI" },
@@ -54,7 +54,7 @@ const stepCopy = [
     icon: Smile,
   },
   {
-    title: { zh: "创建 Campaign", en: "Create a campaign" },
+    title: { zh: "创建营销活动", en: "Create a campaign" },
     description: {
       zh: "添加品牌、目标、预算、投放平台与达人地区要求。",
       en: "Set the brand, objective, budget, platforms, and creator market requirements.",
@@ -65,7 +65,7 @@ const stepCopy = [
   {
     title: { zh: "匹配达人", en: "Match creators" },
     description: {
-      zh: "让 Plus AI 根据 Campaign 条件生成达人推荐，并建立首批候选名单。",
+      zh: "让 Plus AI 根据营销活动条件生成达人推荐，并建立首批候选名单。",
       en: "Let Plus AI recommend creators from campaign requirements and build a shortlist.",
     },
     href: "/creators",
@@ -83,7 +83,7 @@ const stepCopy = [
   {
     title: { zh: "生成复盘报告", en: "Generate a performance report" },
     description: {
-      zh: "在 Insight 聚合页生成并查看 Campaign 复盘报告，用结果优化下一轮 Campaign。",
+      zh: "在 Insight 聚合页生成并查看营销活动复盘报告，用结果优化下一轮营销活动。",
       en: "Generate and review campaign reports in Insight, then use the results to improve the next campaign.",
     },
     href: "/insights",

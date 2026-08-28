@@ -3,11 +3,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreatorsNav } from "@/components/creators-nav";
+import { CreatorMarketplacePage } from "@/components/creator-marketplace-page";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { creators } from "@/lib/mock/creators";
 import { useUIStore } from "@/lib/store/ui-store";
 import type { Campaign, CampaignGoal } from "@/lib/types";
-import { cn, formatCurrency } from "@/lib/utils";
+import { formatCurrency, getBrandCoverTheme } from "@/lib/utils";
 import { ArrowLeft, ArrowRight, BookmarkPlus, CalendarDays, ChevronDown, Filter, MapPin, Search, SlidersHorizontal, Sparkles, Target, Users } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -16,16 +17,16 @@ import { Suspense, useMemo, useState } from "react";
 const L = {
   eyebrow: { zh: "CREATOR DISCOVERY", en: "CREATOR DISCOVERY" },
   title: { zh: "达人", en: "Creators" },
-  subtitle: { zh: "为 Campaign 匹配合适达人，或探索完整达人市场。", en: "Match creators to campaigns or explore the complete creator marketplace." },
-  matchingTab: { zh: "Campaign 匹配", en: "Campaign Matching" },
+  subtitle: { zh: "为营销活动匹配合适达人，或探索完整达人市场。", en: "Match creators to campaigns or explore the complete creator marketplace." },
+  matchingTab: { zh: "活动匹配", en: "Campaign Matching" },
   marketplaceTab: { zh: "达人市场", en: "Creator Marketplace" },
-  matchingTitle: { zh: "Campaign 推荐达人", en: "Recommended creators for this campaign" },
-  matchingDesc: { zh: "根据 Campaign 目标、品类、地区和交付要求生成的推荐列表。", en: "Recommendations based on campaign goals, category, region, and deliverables." },
-  matchesTitle: { zh: "Campaign Matches", en: "Campaign Matches" },
-  matchesDesc: { zh: "查看根据每个 Campaign 要求自动生成的达人推荐。", en: "Review creator recommendations generated from each campaign's requirements." },
-  campaignRecommendations: { zh: "Campaign 推荐", en: "Campaign recommendations" },
-  recommendationsDesc: { zh: "匹配结果综合 Campaign 的地区、品类、平台和粉丝要求计算。", en: "Matches are calculated from each campaign's region, category, platform, and follower requirements." },
-  campaignsReady: { zh: "个 Campaign 已完成匹配", en: "campaigns ready" },
+  matchingTitle: { zh: "活动推荐达人", en: "Recommended creators for this campaign" },
+  matchingDesc: { zh: "根据营销活动目标、品类、地区和交付要求生成的推荐列表。", en: "Recommendations based on campaign goals, category, region, and deliverables." },
+  matchesTitle: { zh: "活动匹配", en: "Campaign Matches" },
+  matchesDesc: { zh: "查看根据每个营销活动要求自动生成的达人推荐。", en: "Review creator recommendations generated from each campaign's requirements." },
+  campaignRecommendations: { zh: "活动推荐", en: "Campaign recommendations" },
+  recommendationsDesc: { zh: "匹配结果综合营销活动的地区、品类、平台和粉丝要求计算。", en: "Matches are calculated from each campaign's region, category, platform, and follower requirements." },
+  campaignsReady: { zh: "个营销活动已完成匹配", en: "campaigns ready" },
   recommendedCreators: { zh: "推荐达人", en: "Recommended creators" },
   topMatches: { zh: "Top 3 匹配", en: "Top 3 matches" },
   exploreMatches: { zh: "查看全部匹配达人", en: "Explore matched creators" },
@@ -35,10 +36,10 @@ const L = {
   active: { zh: "进行中", en: "Active" },
   match: { zh: "匹配", en: "Match" },
   estimatedRate: { zh: "预估报价", en: "Est. rate" },
-  backToMatches: { zh: "返回 Campaign Matches", en: "Back to Campaign Matches" },
+  backToMatches: { zh: "返回活动匹配", en: "Back to Campaign Matches" },
   marketplaceTitle: { zh: "全部达人池", en: "All creators" },
-  marketplaceDesc: { zh: "跨 Campaign 搜索和探索完整达人数据库。", en: "Search and explore the full creator database across campaigns." },
-  campaign: { zh: "选择 Campaign", en: "Select campaign" },
+  marketplaceDesc: { zh: "跨营销活动搜索和探索完整达人数据库。", en: "Search and explore the full creator database across campaigns." },
+  campaign: { zh: "选择营销活动", en: "Select campaign" },
   search: { zh: "搜索达人名称、账号或平台…", en: "Search creator name, handle, or platform…" },
   filters: { zh: "筛选条件", en: "Filters" },
   region: { zh: "地区", en: "Region" },
@@ -65,7 +66,7 @@ const goalLabels: Record<CampaignGoal, { zh: string; en: string }> = {
 type CreatorTab = "matching" | "marketplace";
 
 export default function CreatorsPage() {
-  return <Suspense fallback={null}><CreatorsContent /></Suspense>;
+  return <Suspense fallback={null}><CreatorMarketplacePage /></Suspense>;
 }
 
 function CreatorsContent() {
@@ -169,8 +170,6 @@ function CampaignMatchesOverview({ campaigns }: { campaigns: Campaign[] }) {
     paused: { zh: "已暂停", en: "Paused" },
     closed: { zh: "已结束", en: "Closed" },
   } as const;
-  const cardColors = ["bg-[#E7EDF8]", "bg-[#E4EFE8]", "bg-[#F1E8DD]", "bg-[#E8E4F3]", "bg-[#F4E4E8]"];
-
   return (
     <div className="mt-7">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -196,8 +195,11 @@ function CampaignMatchesOverview({ campaigns }: { campaigns: Campaign[] }) {
           return (
             <article key={campaign.id} className="overflow-hidden rounded-[14px] border border-border bg-surface shadow-card">
               <div className="flex min-h-[132px] items-center gap-4 p-4">
-                <div className={cn("flex h-[86px] w-[96px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[11px]", cardColors[campaignIndex % cardColors.length])}>
-                  {campaign.image ? <img src={campaign.image} alt="" className="h-full w-full object-cover" /> : <span className="px-2 text-center text-[15px] font-bold text-navy">{l(campaign.brand)}</span>}
+                <div
+                  style={getBrandCoverTheme(l(campaign.brand))}
+                  className="flex h-[86px] w-[96px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[11px]"
+                >
+                  {campaign.image ? <img src={campaign.image} alt="" className="h-full w-full object-cover" /> : <span className="px-2 text-center text-[15px] font-bold">{l(campaign.brand)}</span>}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2"><span className="text-[9px] font-semibold uppercase tracking-[0.13em] text-muted">{l(campaign.brand)}</span><Badge tone={statusTone}>{l(statusLabels[campaign.status])}</Badge></div>

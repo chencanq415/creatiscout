@@ -18,7 +18,7 @@ const L = {
 
 const scopes = [
   {
-    name: { zh: "Campaigns · 所有挂靠项目", en: "Campaigns · all attached projects" },
+    name: { zh: "营销活动 · 所有挂靠项目", en: "Campaigns · all attached projects" },
     level: "readWrite" as const,
   },
   { name: { zh: "私域达人池", en: "Private creator pool" }, level: "readWrite" as const },

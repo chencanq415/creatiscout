@@ -13,10 +13,10 @@ import { useMemo } from "react";
 const L = {
   title: { zh: "数据洞察", en: "Insight" },
   subtitle: {
-    zh: "聚合所有 Campaign 的执行与效果数据，用复盘结果优化下一轮 Campaign。",
+    zh: "聚合所有营销活动的执行与效果数据，用复盘结果优化下一轮营销活动。",
     en: "Review execution and performance across campaigns, then turn learnings into better campaigns.",
   },
-  totalCampaigns: { zh: "Campaign 总数", en: "Total campaigns" },
+  totalCampaigns: { zh: "营销活动总数", en: "Total campaigns" },
   activeCampaigns: { zh: "进行中", en: "Active" },
   creators: { zh: "合作达人", en: "Collaborating creators" },
   deliveries: { zh: "已交付内容", en: "Delivered content" },
@@ -24,15 +24,15 @@ const L = {
   spentOf: { zh: "已花费 {spent} / 总预算 {budget}", en: "{spent} spent of {budget}" },
   platformPerformance: { zh: "平台表现", en: "Platform performance" },
   platformDescription: {
-    zh: "按平台汇总 Campaign、合作达人和内容交付情况。",
+    zh: "按平台汇总营销活动、合作达人和内容交付情况。",
     en: "Campaign, creator, and delivery activity grouped by platform.",
   },
-  campaigns: { zh: "Campaign", en: "Campaigns" },
+  campaigns: { zh: "营销活动", en: "Campaigns" },
   delivered: { zh: "交付", en: "Delivered" },
   spend: { zh: "花费", en: "Spend" },
-  reports: { zh: "Campaign 报告", en: "Campaign reports" },
+  reports: { zh: "营销活动报告", en: "Campaign reports" },
   reportsDescription: {
-    zh: "横向比较每个 Campaign 的执行进度，并进入详情查看完整报告。",
+    zh: "横向比较每个营销活动的执行进度，并进入详情查看完整报告。",
     en: "Compare execution across campaigns and open any campaign for its full report.",
   },
   brand: { zh: "品牌", en: "Brand" },
@@ -41,7 +41,7 @@ const L = {
   progress: { zh: "预算进度", en: "Budget progress" },
   openReport: { zh: "查看报告", en: "Open report" },
   empty: {
-    zh: "创建 Campaign 后，效果数据会聚合到这里。",
+    zh: "创建营销活动后，效果数据会聚合到这里。",
     en: "Campaign insights will appear here once you create a campaign.",
   },
 } as const;

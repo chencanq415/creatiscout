@@ -24,7 +24,7 @@ export default function IMPage({ params }: { params: Promise<{ id: string }> }) 
     {
       role: "emp",
       text: {
-        zh: `Hi，我是 ${e?.name}，工作时间随时找我，无关具体 campaign 也可以闲聊。`,
+        zh: `Hi，我是 ${e?.name}，工作时间随时找我，无关具体营销活动也可以闲聊。`,
         en: `Hi, I'm ${e?.name}. Reach me anytime during work hours — happy to chat even outside a specific campaign.`,
       },
     },

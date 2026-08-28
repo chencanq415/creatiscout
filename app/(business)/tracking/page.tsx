@@ -13,7 +13,7 @@ import { cn, formatRelative } from "@/lib/utils";
 const L = {
   pageTitle: { zh: "Tracking 竞品追踪", en: "Competitor Tracking" },
   pageSub: {
-    zh: "监测竞品 campaign、达人合作和素材策略，把市场信号变成下一次提报机会。",
+    zh: "监测竞品营销活动、达人合作和素材策略，把市场信号变成下一次提报机会。",
     en: "Monitor competitor campaigns, creator collabs, and asset strategies — turn market signals into your next pitch opportunity.",
   },
   searchPlaceholder: { zh: "搜索竞品名 / 领域…", en: "Search competitor / category…" },
@@ -30,7 +30,7 @@ const L = {
 } as const;
 
 const monitoredLabels: Record<TrackingTarget["monitored"][number], LText> = {
-  campaign: { zh: "campaign", en: "campaign" },
+  campaign: { zh: "营销活动", en: "campaign" },
   creators: { zh: "达人", en: "creators" },
   assets: { zh: "素材", en: "assets" },
 };

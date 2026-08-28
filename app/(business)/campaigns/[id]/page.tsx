@@ -14,14 +14,14 @@ import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
 
 const L = {
-  back: { zh: "返回 Campaign", en: "Back to campaigns" },
-  campaignDetails: { zh: "Campaign 详情", en: "Campaign Details" },
+  back: { zh: "返回营销活动", en: "Back to campaigns" },
+  campaignDetails: { zh: "活动详情", en: "Campaign Details" },
   collaboration: { zh: "合作进度", en: "Collaboration" },
   performanceInsight: { zh: "效果洞察", en: "Performance Insight" },
   aiWorkflow: { zh: "AI 工作流", en: "AI Workflow" },
   workflowTitle: { zh: "AI 工作流配置", en: "AI Workflow Configuration" },
   workflowDescription: {
-    zh: "管理 AI 在达人匹配、合作跟进与 Campaign 复盘阶段的自动执行方式。所有修改都会自动保存。",
+    zh: "管理 AI 在达人匹配、合作跟进与营销活动复盘阶段的自动执行方式。所有修改都会自动保存。",
     en: "Manage how AI automates creator matching, collaboration follow-up, and campaign reporting. Changes save automatically.",
   },
 } as const;

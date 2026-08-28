@@ -23,3 +23,17 @@ export function formatRelative(date: Date | string, locale: Locale = "en") {
 export function formatCurrency(n: number) {
   return `¥${n.toLocaleString("en-US")}`;
 }
+
+const brandCoverPalette = [
+  { backgroundColor: "#FFF0F5", color: "#C9366B" },
+  { backgroundColor: "#EDF8F6", color: "#257A74" },
+  { backgroundColor: "#EFF5FF", color: "#3C6AA3" },
+  { backgroundColor: "#F5F0FF", color: "#7854A8" },
+  { backgroundColor: "#FFF6EC", color: "#A66125" },
+  { backgroundColor: "#F5F8E8", color: "#66722B" },
+];
+
+export function getBrandCoverTheme(brand: string) {
+  const hash = Array.from(brand).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return brandCoverPalette[hash % brandCoverPalette.length];
+}

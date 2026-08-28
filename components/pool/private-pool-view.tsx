@@ -1,6 +1,7 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PrivateCreatorGroups } from "@/components/pool/private-creator-groups";
 import type { LText } from "@/lib/i18n/dict";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { creators } from "@/lib/mock/creators";
@@ -49,6 +50,10 @@ const extras: LText[][] = [
 ];
 
 export function PrivatePoolView() {
+  return <PrivateCreatorGroups />;
+}
+
+function LegacyPrivatePoolView() {
   const l = useLoc();
   const [q, setQ] = useState("");
   const list = creators.filter((c) => (q ? c.name.includes(q) || c.handle.includes(q) : true));

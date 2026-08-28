@@ -39,7 +39,7 @@ const L = {
     zh: "查看关键营销节点，提前安排策划、达人建联与内容发布。",
     en: "Plan strategy, creator outreach, and publishing around key marketing moments.",
   },
-  generateCampaign: { zh: "生成 Campaign", en: "Generate campaign" },
+  generateCampaign: { zh: "生成营销活动", en: "Generate campaign" },
   previousMonth: { zh: "上一个月", en: "Previous month" },
   nextMonth: { zh: "下一个月", en: "Next month" },
   trendRadar: { zh: "趋势雷达", en: "Trend Radar" },
@@ -54,7 +54,7 @@ const L = {
   productTrend: { zh: "商品趋势", en: "Product trends" },
   creativeStudio: { zh: "AI 创意工坊", en: "AI Creative Studio" },
   creativeStudioDesc: {
-    zh: "把趋势洞察转化为可执行的 Campaign 策划、品牌文案和达人内容。",
+    zh: "把趋势洞察转化为可执行的营销活动策划、品牌文案和达人内容。",
     en: "Turn trend insights into campaign plans, brand copy, and creator-ready content.",
   },
   startCreating: { zh: "开始创作", en: "Start creating" },
@@ -186,7 +186,7 @@ const studios = [
   {
     title: { zh: "AI 做策划案", en: "AI Campaign Planner" },
     description: {
-      zh: "输入品牌、产品和目标，生成 Campaign Big Idea、传播阶段与达人内容方向。",
+      zh: "输入品牌、产品和目标，生成营销活动 Big Idea、传播阶段与达人内容方向。",
       en: "Generate a big idea, rollout phases, and creator directions from your brand and goals.",
     },
     icon: Lightbulb,
@@ -239,7 +239,7 @@ const inspirationCards = [
   {
     title: { zh: "高表现内容规律", en: "Winning Content Patterns" },
     description: {
-      zh: "从历史 Campaign 提炼 Hook 与脚本结构",
+      zh: "从历史营销活动提炼 Hook 与脚本结构",
       en: "Learn hooks and structures from past campaigns",
     },
     icon: BarChart3,

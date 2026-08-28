@@ -7,7 +7,7 @@ import type { LText } from "@/lib/i18n/dict";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { useUIStore } from "@/lib/store/ui-store";
 import type { Campaign, CampaignGoal } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, getBrandCoverTheme } from "@/lib/utils";
 import {
 	ArrowRight,
 	CalendarRange,
@@ -24,40 +24,40 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
 const L = {
-	title: { zh: "Campaigns", en: "Campaigns" },
+	title: { zh: "营销活动", en: "Campaigns" },
 	subtitle: {
-		zh: "管理 Campaign 信息，并进入每个 Campaign 查看达人合作进度。",
+		zh: "管理营销活动信息，并进入每个活动查看达人合作进度。",
 		en: "Manage campaign information and open each campaign to track creator collaborations.",
 	},
 	all: { zh: "全部", en: "All" },
 	searchPlaceholder: {
-		zh: "搜索 Campaign 或品牌…",
+		zh: "搜索营销活动或品牌…",
 		en: "Search campaign or brand…",
 	},
-	newCampaign: { zh: "新建 Campaign", en: "New Campaign" },
-	noMatches: { zh: "没有匹配的 Campaign", en: "No matching campaigns" },
-	goal: { zh: "目标", en: "Goal" },
-	compensation: { zh: "合作激励", en: "Compensation" },
-	duration: { zh: "Campaign 周期", en: "Campaign duration" },
-	openCampaign: { zh: "查看 Campaign", en: "Open campaign" },
+	newCampaign: { zh: "新建营销活动", en: "New Campaign" },
+	noMatches: { zh: "没有匹配的营销活动", en: "No matching campaigns" },
+	goal: { zh: "营销目标", en: "Goal" },
+	compensation: { zh: "合作方式", en: "Compensation" },
+	duration: { zh: "活动有效期", en: "Campaign duration" },
+	openCampaign: { zh: "查看活动", en: "Open campaign" },
 	flatFee: { zh: "固定费用", en: "Flat fee" },
 	commission: { zh: "佣金", en: "Commission" },
 	freeProduct: { zh: "免费产品", en: "Free product" },
 	giftCard: { zh: "礼品卡", en: "Gift card" },
 	emptyEyebrow: {
-		zh: "创建你的第一个 Campaign",
+		zh: "创建你的第一个营销活动",
 		en: "CREATE YOUR FIRST CAMPAIGN",
 	},
 	emptyTitle: {
-		zh: "先定义完整的 Campaign，再基于 Campaign 条件寻找达人",
+		zh: "先定义完整的营销活动，再基于活动条件寻找达人",
 		en: "Define the campaign first, then find creators from its requirements",
 	},
 	emptyDescription: {
-		zh: "填写品牌、目标、周期、合作激励和达人要求。Campaign 创建完成后，数字员工会基于这些条件开始搜索和建联。",
+		zh: "填写品牌、营销目标、活动有效期、合作方式和达人要求。营销活动创建完成后，数字员工会基于这些条件开始搜索和建联。",
 		en: "Set the brand, goal, duration, compensation, and creator requirements. Your digital employee will use them to begin discovery and outreach.",
 	},
-	createFirst: { zh: "创建第一个 Campaign", en: "Create your first campaign" },
-	stepBasic: { zh: "Campaign 信息", en: "Campaign details" },
+	createFirst: { zh: "创建第一个营销活动", en: "Create your first campaign" },
+	stepBasic: { zh: "活动信息", en: "Campaign details" },
 	stepBasicSub: {
 		zh: "定义品牌、目标、类目与周期",
 		en: "Define brand, goal, category, and duration",
@@ -73,7 +73,7 @@ const L = {
 		en: "Set region, language, category, and deliverables",
 	},
 	previewHint: {
-		zh: "当前是无 Campaign 的预览状态",
+		zh: "当前是无营销活动的预览状态",
 		en: "Previewing the no-campaign state",
 	},
 } as const;
@@ -272,10 +272,10 @@ function CampaignImage({ campaign }: { campaign: Campaign }) {
 	const brand = l(campaign.brand);
 	return (
 		<div
-			style={brandCoverStyle(brand)}
-			className="flex h-[88px] w-[88px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] p-2.5 text-center shadow-card"
+			style={getBrandCoverTheme(brand)}
+			className="flex h-[88px] w-[88px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] p-2.5 text-center"
 		>
-			<span className="line-clamp-3 text-[12px] font-bold leading-[15px] tracking-[-0.02em] text-white drop-shadow-sm">
+			<span className="line-clamp-3 text-[12px] font-bold leading-[15px] tracking-[-0.02em]">
 				{brand}
 			</span>
 		</div>
@@ -510,22 +510,6 @@ function PlatformLogo({ platform }: { platform: string }) {
 			{platform.slice(0, 1).toUpperCase()}
 		</span>
 	);
-}
-
-function brandCoverStyle(brand: string) {
-	const palettes = [
-		["#f15b86", "#8f3fe2"],
-		["#188f86", "#58c7b7"],
-		["#2458a6", "#52a4d8"],
-		["#a95b1d", "#ed9d48"],
-		["#6637a4", "#d05a92"],
-	];
-	const hash = Array.from(brand).reduce(
-		(sum, char) => sum + char.charCodeAt(0),
-		0,
-	);
-	const [from, to] = palettes[hash % palettes.length];
-	return { background: `linear-gradient(135deg, ${from}, ${to})` };
 }
 
 function CompensationSummary({ campaign }: { campaign: Campaign }) {

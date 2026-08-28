@@ -10,7 +10,7 @@ import { useUIStore } from "@/lib/store/ui-store";
 const L = {
   title: { zh: "挂靠项目", en: "Attached Projects" },
   subtitle: {
-    zh: "挂靠 = 授予该员工读取项目所有信息的权限。可在新建 campaign 时自动指派。",
+    zh: "挂靠 = 授予该员工读取项目所有信息的权限。可在新建营销活动时自动指派。",
     en: "Attaching grants this employee read access to everything in a project. Can be auto-assigned when creating a campaign.",
   },
   attachNew: { zh: "挂靠新项目", en: "Attach Project" },

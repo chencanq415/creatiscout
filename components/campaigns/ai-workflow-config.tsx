@@ -4,54 +4,48 @@ import { Switch } from "@/components/ui/switch";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import type { CampaignAIWorkflow } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { BarChart3, Handshake, Mail, Search, Sparkles } from "lucide-react";
+import { BarChart3, Handshake, Search, Sparkles } from "lucide-react";
 
 const L = {
   matchingTitle: { zh: "自动匹配达人", en: "Creator Matching" },
   matchingDescription: {
-    zh: "AI 会结合 Campaign 信息与您的补充要求，持续推荐高匹配度达人。",
-    en: "Find best-fit creators using your campaign brief and custom criteria.",
+    zh: "根据您的营销活动和达人要求，自动匹配合适的达人。",
+    en: "Automatically match suitable creators based on your campaign and creator requirements.",
   },
-  matchingRequirements: { zh: "达人匹配要求", en: "Matching criteria" },
-  matchingHint: {
-    zh: "可以用自然语言描述匹配需求，也可以加入参考达人案例。例如：需要 Base 在 US、10 万粉以上、互动率较高且审美符合品牌调性的达人；案例参考 www.instagram.com/username",
-    en: "Describe your ideal creators in plain language. Include location, audience size, engagement, aesthetic, brand fit, or reference profiles. Example: US-based creators with 100K+ followers, strong engagement, and a premium visual style. Reference: www.instagram.com/username",
-  },
+  matchingRequirements: { zh: "达人要求", en: "Matching criteria" },
   matchingPlaceholder: {
-    zh: "描述地区、粉丝量、互动率、内容审美、品牌调性和参考达人……",
-    en: "e.g. US-based beauty creators with 100K+ followers and strong engagement…",
+    zh: "你可以用简单直白的文字描述要求，也可以提供达人主页链接，AI 会自动分析并匹配。例如：Base 在 US、10 万粉以上、互动率高且视觉风格高级的美妆达人；参考：www.instagram.com/username",
+    en: "Describe your requirements in simple terms or add creator profile links for AI to analyze and match. Example: US-based beauty creators with 100K+ followers, strong engagement, and a premium visual style. Reference: www.instagram.com/username",
   },
-  collaborationTitle: { zh: "自动跟进达人合作", en: "Collaboration Follow-up" },
+  collaborationTitle: { zh: "自动跟进合作", en: "Collaboration Follow-up" },
   collaborationDescription: {
     zh: "配置 AI 在建联、议价和合作确认阶段的自动执行方式。",
     en: "Automate outreach, rate negotiation, and collaboration confirmation.",
   },
-  autoOutreach: { zh: "自动建联达人", en: "Outreach" },
+  autoOutreach: { zh: "自动建联", en: "Outreach" },
   outreachDescription: {
-    zh: "匹配完成后，AI 将使用下方模板自动发送合作邀请。",
-    en: "Send a personalized collaboration invite when a match is ready.",
+    zh: "自动建联您 Shortlist 列表中的达人。",
+    en: "Automatically reach out to creators in your shortlist.",
   },
-  outreachTemplate: { zh: "建联邮件模板", en: "Template" },
+  outreachTemplate: { zh: "模板", en: "Template" },
   autoNegotiation: { zh: "自动砍价", en: "Pricing Negotiation" },
   negotiationDescription: {
-    zh: "AI 将基于 Campaign 预算与报价范围自动进行议价。",
-    en: "Respond to creator quotes using your budget and target rate.",
+    zh: "基于营销活动的预算和达人的数据表现，自动为达人报价进行砍价。",
+    en: "Automatically negotiate creator quotes using your campaign budget and creator performance data.",
   },
-  negotiationTemplate: { zh: "砍价模板", en: "Template" },
-  autoFollowUp: { zh: "自动跟进达人合作", en: "Collaboration Confirmation" },
+  negotiationTemplate: { zh: "模板", en: "Template" },
+  autoFollowUp: { zh: "自动跟进合作", en: "Collaboration Confirmation" },
   followUpDescription: {
-    zh: "AI 将持续跟进意向达人，并推动对方完成合作确认。",
-    en: "Keep conversations moving until the collaboration is confirmed.",
+    zh: "确认合作后，向达人发送合作确认并自动跟进回复，推动达人及时完成二次确认。",
+    en: "Automatically send a confirmation invitation and follow up after you approve a collaboration, until the creator confirms.",
   },
-  confirmationTemplate: { zh: "合作确认模板", en: "Template" },
+  confirmationTemplate: { zh: "模板", en: "Template" },
   reportTitle: { zh: "自动生成复盘报告", en: "Campaign Analysis" },
   reportDescription: {
-    zh: "Campaign 完成后自动整理达人表现、内容效果与优化建议，为下一轮 Campaign 提供依据。",
+    zh: "营销活动完成后自动整理达人表现、内容效果与优化建议，为下一轮营销活动提供依据。",
     en: "Turn campaign results into performance insights and recommendations for what to do next.",
   },
-  enabled: { zh: "已开启", en: "On" },
-  disabled: { zh: "已关闭", en: "Off" },
-  generateTemplate: { zh: "AI 一键生成模板", en: "Generate with AI" },
+  generateTemplate: { zh: "AI 生成", en: "Generate with AI" },
 } as const;
 
 type Localize = (value: { zh: string; en: string }) => string;
@@ -62,18 +56,18 @@ export function getDefaultAIWorkflow(l: Localize): CampaignAIWorkflow {
     creatorMatchingRequirements: "",
     autoOutreach: true,
     outreachTemplate: l({
-      zh: "Hi {{creator_name}}，我们正在为 {{campaign_name}} 寻找合适的内容创作者。你的内容风格与品牌非常契合，想邀请你了解这次合作。",
-      en: "Hi {{creator_name}}, we think you'd be a great fit for {{campaign_name}}. We'd love to share the details and explore a collaboration.",
+      zh: "主题：{{campaign_name}} 合作邀请\n\nHi {{creator_name}}，\n\n我们是 {{brand_name}} 团队，目前正在为 {{campaign_name}} 寻找内容创作者。我们很喜欢你的内容风格与受众互动表现，认为你与本次营销活动非常契合。\n\n我们希望邀请你了解本次合作的 Brief、交付内容与合作预算。如有兴趣，请回复此邮件，我们会第一时间发送完整合作信息。\n\n期待与你合作，\n{{brand_name}} 团队",
+      en: "Subject: Collaboration invitation — {{campaign_name}}\n\nHi {{creator_name}},\n\nWe’re the {{brand_name}} team and are currently inviting creators for {{campaign_name}}. We love your content style and audience engagement, and believe you could be a strong fit for this campaign.\n\nWe’d be happy to share the brief, deliverables, and collaboration budget. If you’re interested, please reply to this email and we’ll send the full details.\n\nBest regards,\nThe {{brand_name}} team",
     }),
     autoNegotiation: true,
     negotiationTemplate: l({
-      zh: "感谢你的报价。基于本次 Campaign 的预算，我们希望将合作费用调整至 {{target_rate}}。期待与你达成合作。",
-      en: "Thanks for sharing your rate. Based on the campaign budget, could you work with {{target_rate}}? We'd love to make this collaboration happen.",
+      zh: "主题：{{campaign_name}} 合作报价确认\n\nHi {{creator_name}}，\n\n感谢你分享报价。结合本次营销活动的预算、合作范围以及你的内容表现，我们希望以 {{target_rate}} 推进本次合作。\n\n若该报价可行，请回复确认；如有任何问题，也欢迎告诉我们，我们愿意进一步沟通合作细节。\n\nBest regards,\n{{brand_name}} 团队",
+      en: "Subject: Rate proposal for {{campaign_name}}\n\nHi {{creator_name}},\n\nThank you for sharing your rate. Based on this campaign’s budget, scope, and your content performance, we’d like to propose {{target_rate}} for this collaboration.\n\nPlease let us know if this works for you. We’re also happy to discuss any questions or details.\n\nBest regards,\nThe {{brand_name}} team",
     }),
     autoCollaborationFollowUp: true,
     collaborationConfirmationTemplate: l({
-      zh: "Hi {{creator_name}}，想跟进确认 {{campaign_name}} 的合作安排。请查看 Brief、交付内容与时间，并回复确认。",
-      en: "Hi {{creator_name}}, just checking in on {{campaign_name}}. Please review the brief, deliverables, and timeline, and let us know if everything looks good.",
+      zh: "主题：请确认 {{campaign_name}} 合作安排\n\nHi {{creator_name}}，\n\n很高兴确认你已入选 {{campaign_name}}。请查看已发送的合作 Brief、交付内容、发布时间和报酬安排。\n\n如确认无误，请直接回复“确认合作”；如需调整，请在回复中告知我们。我们会持续跟进，确保合作顺利开始。\n\nBest regards,\n{{brand_name}} 团队",
+      en: "Subject: Please confirm your collaboration for {{campaign_name}}\n\nHi {{creator_name}},\n\nWe’re pleased to confirm that you’ve been selected for {{campaign_name}}. Please review the collaboration brief, deliverables, publishing timeline, and compensation details.\n\nIf everything looks good, please reply to confirm your participation. If you need any adjustments, let us know and we’ll be happy to help.\n\nBest regards,\nThe {{brand_name}} team",
     }),
     autoReport: true,
   };
@@ -113,9 +107,8 @@ export function AIWorkflowConfig({
           description={l(L.matchingDescription)}
           enabled={value.autoMatchCreators}
           onToggle={(autoMatchCreators) => patch({ autoMatchCreators })}
-          status={l(value.autoMatchCreators ? L.enabled : L.disabled)}
         >
-          <TemplateField label={l(L.matchingRequirements)} hint={l(L.matchingHint)}>
+          <TemplateField label={l(L.matchingRequirements)}>
             <textarea
               value={value.creatorMatchingRequirements}
               onChange={(event) => patch({ creatorMatchingRequirements: event.target.value })}
@@ -139,7 +132,6 @@ export function AIWorkflowConfig({
           />
           <div className="divide-y divide-border px-5">
             <AutomationItem
-              icon={<Mail className="h-4 w-4" />}
               title={l(L.autoOutreach)}
               description={l(L.outreachDescription)}
               checked={value.autoOutreach}
@@ -151,12 +143,7 @@ export function AIWorkflowConfig({
                   <GenerateTemplateButton
                     label={l(L.generateTemplate)}
                     onClick={() =>
-                      patch({
-                        outreachTemplate: l({
-                          zh: "Hi {{creator_name}}，我们很喜欢你的内容风格，认为你非常适合 {{campaign_name}}。想邀请你了解 Campaign 详情，并探讨本次合作。",
-                          en: "Hi {{creator_name}}, we love your content and think you'd be a strong fit for {{campaign_name}}. We'd love to share the campaign details and explore a collaboration.",
-                        }),
-                      })
+                      patch({ outreachTemplate: getDefaultAIWorkflow(l).outreachTemplate })
                     }
                   />
                 }
@@ -168,7 +155,6 @@ export function AIWorkflowConfig({
               </TemplateField>
             </AutomationItem>
             <AutomationItem
-              icon={<Sparkles className="h-4 w-4" />}
               title={l(L.autoNegotiation)}
               description={l(L.negotiationDescription)}
               checked={value.autoNegotiation}
@@ -180,12 +166,7 @@ export function AIWorkflowConfig({
                   <GenerateTemplateButton
                     label={l(L.generateTemplate)}
                     onClick={() =>
-                      patch({
-                        negotiationTemplate: l({
-                          zh: "感谢你分享报价。结合 {{campaign_name}} 的预算与合作范围，我们希望以 {{target_rate}} 推进本次合作，期待听听你的想法。",
-                          en: "Thanks for sharing your rate. Based on the scope and budget for {{campaign_name}}, we'd like to propose {{target_rate}}. Let us know if that could work for you.",
-                        }),
-                      })
+                      patch({ negotiationTemplate: getDefaultAIWorkflow(l).negotiationTemplate })
                     }
                   />
                 }
@@ -197,7 +178,6 @@ export function AIWorkflowConfig({
               </TemplateField>
             </AutomationItem>
             <AutomationItem
-              icon={<Handshake className="h-4 w-4" />}
               title={l(L.autoFollowUp)}
               description={l(L.followUpDescription)}
               checked={value.autoCollaborationFollowUp}
@@ -209,12 +189,7 @@ export function AIWorkflowConfig({
                   <GenerateTemplateButton
                     label={l(L.generateTemplate)}
                     onClick={() =>
-                      patch({
-                        collaborationConfirmationTemplate: l({
-                          zh: "Hi {{creator_name}}，想与你确认 {{campaign_name}} 的合作安排。请查看 Brief、交付内容和时间节点，如果没有问题，请回复确认。",
-                          en: "Hi {{creator_name}}, we'd like to confirm the next steps for {{campaign_name}}. Please review the brief, deliverables, and timeline, and let us know if everything looks good.",
-                        }),
-                      })
+                      patch({ collaborationConfirmationTemplate: getDefaultAIWorkflow(l).collaborationConfirmationTemplate })
                     }
                   />
                 }
@@ -239,8 +214,7 @@ export function AIWorkflowConfig({
           description={l(L.reportDescription)}
           enabled={value.autoReport}
           onToggle={(autoReport) => patch({ autoReport })}
-          status={l(value.autoReport ? L.enabled : L.disabled)}
-        />
+        ><AnalysisPreview /></WorkflowSection>
       )}
     </div>
   );
@@ -253,7 +227,6 @@ function WorkflowSection({
   description,
   enabled,
   onToggle,
-  status,
   children,
 }: {
   id?: string;
@@ -262,7 +235,6 @@ function WorkflowSection({
   description: string;
   enabled: boolean;
   onToggle: (checked: boolean) => void;
-  status: string;
   children?: React.ReactNode;
 }) {
   return (
@@ -276,14 +248,7 @@ function WorkflowSection({
           <h3 className="text-[14px] font-semibold text-navy">{title}</h3>
           <p className="mt-1 text-[10.5px] leading-[17px] text-muted">{description}</p>
         </div>
-        <div className="flex items-center gap-2.5">
-          <span
-            className={cn("text-[10px] font-medium", enabled ? "text-teal-text" : "text-muted")}
-          >
-            {status}
-          </span>
-          <Switch checked={enabled} onCheckedChange={onToggle} aria-label={title} />
-        </div>
+        <Switch checked={enabled} onCheckedChange={onToggle} aria-label={title} />
       </div>
       {children && (
         <div className={cn("p-5", !enabled && "pointer-events-none opacity-45")}>{children}</div>
@@ -316,15 +281,18 @@ function SectionIcon({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AnalysisPreview() {
+  const l = useLoc();
+  return <div className="flex items-center gap-4 rounded-[10px] border border-dashed border-border-strong bg-surface-warm/55 p-4"><div className="flex h-16 w-24 shrink-0 items-end gap-1 rounded-[8px] bg-white p-3 shadow-card"><span className="h-4 flex-1 rounded-sm bg-brand/25" /><span className="h-7 flex-1 rounded-sm bg-brand/45" /><span className="h-10 flex-1 rounded-sm bg-brand" /><span className="h-6 flex-1 rounded-sm bg-brand/35" /></div><div><p className="text-[11px] font-semibold text-ink">{l({ zh: "营销活动完成后生成分析报告", en: "Analysis will be generated when the campaign is complete" })}</p><p className="mt-1 text-[9.5px] leading-4 text-muted">{l({ zh: "报告将汇总达人表现、内容效果与下一轮优化建议。", en: "It will summarize creator performance, content results, and recommendations for the next campaign." })}</p></div></div>;
+}
+
 function AutomationItem({
-  icon,
   title,
   description,
   checked,
   onToggle,
   children,
 }: {
-  icon: React.ReactNode;
   title: string;
   description: string;
   checked: boolean;
@@ -334,16 +302,13 @@ function AutomationItem({
   return (
     <div className="py-5">
       <div className="flex items-start gap-3">
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[9px] bg-soft-teal text-teal-text">
-          {icon}
-        </span>
         <div className="min-w-0 flex-1">
           <h4 className="text-[12.5px] font-semibold text-ink">{title}</h4>
           <p className="mt-1 text-[10px] leading-4 text-muted">{description}</p>
         </div>
         <Switch checked={checked} onCheckedChange={onToggle} aria-label={title} />
       </div>
-      <div className={cn("ml-11 mt-4", !checked && "pointer-events-none opacity-45")}>
+      <div className={cn("mt-4", !checked && "pointer-events-none opacity-45")}>
         {children}
       </div>
     </div>
@@ -361,7 +326,7 @@ function GenerateTemplateButton({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex h-7 items-center gap-1.5 rounded-[8px] border border-brand/20 bg-soft-pink/55 px-2.5 text-[9.5px] font-semibold text-brand transition-colors hover:border-brand/35 hover:bg-soft-pink"
+      className="inline-flex items-center gap-1 rounded-[5px] px-1.5 py-1 text-[9.5px] font-medium text-brand transition-colors hover:bg-soft-pink"
     >
       <Sparkles className="h-3 w-3" />
       {label}
@@ -397,7 +362,7 @@ function WorkflowTextarea({
     <textarea
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      rows={4}
+      rows={Math.max(9, value.split("\n").length + 1)}
       className="w-full resize-y rounded-[10px] border border-border bg-page px-3.5 py-3 text-[11.5px] leading-5 text-ink outline-none transition-colors focus:border-brand/40"
     />
   );

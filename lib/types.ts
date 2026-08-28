@@ -20,6 +20,15 @@ export interface CampaignProduct {
   description?: string;
 }
 
+export interface CampaignGiftCard {
+  id?: string;
+  name: string;
+  currency: CampaignCurrency;
+  value: number;
+  description?: string;
+  image?: string;
+}
+
 export interface CampaignCompensation {
   flatFee?: {
     currency: CampaignCurrency;
@@ -29,15 +38,13 @@ export interface CampaignCompensation {
   };
   commission?: {
     rate: number;
+    perOrderAmount?: number;
+    currency?: CampaignCurrency;
     affiliateLink?: string;
   };
   freeProducts: CampaignProduct[];
-  giftCard?: {
-    name: string;
-    currency: CampaignCurrency;
-    value: number;
-    description?: string;
-  };
+  giftCard?: CampaignGiftCard;
+  giftCards?: CampaignGiftCard[];
 }
 
 export interface CampaignCreatorRequirements {
@@ -46,6 +53,12 @@ export interface CampaignCreatorRequirements {
   categories: string[];
   minimumFollowers: number;
   contentTypes: string[];
+  deliverables?: Array<{
+    platform: string;
+    minimumFollowers: number;
+    contentTypes: string[];
+    notes?: string;
+  }>;
 }
 
 export interface CampaignAttachment {

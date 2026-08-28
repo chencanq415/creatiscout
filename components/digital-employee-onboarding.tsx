@@ -34,7 +34,7 @@ const copy = {
     en: "DIGITAL EMPLOYEE · TEAM & PLAN",
   },
   onboardingTitle: {
-    zh: "先选一位数字员工，再开始你的 Campaign",
+    zh: "先选一位数字员工，再开始你的营销活动",
     en: "Hire your digital employee before starting a campaign",
   },
   manageTitle: {
@@ -46,7 +46,7 @@ const copy = {
     en: "This is not a bundle of software features. It is a KOL operator who works for you. Hire one to enter the workspace.",
   },
   manageSubtitle: {
-    zh: "根据 Campaign 规模升级员工资历，或把完整营销交付交给 Enterprise 团队。",
+    zh: "根据营销活动规模升级员工资历，或把完整营销交付交给 Enterprise 团队。",
     en: "Upgrade as campaign volume grows, or let Enterprise manage the entire campaign for you.",
   },
   selected: { zh: "已选中", en: "Selected" },
@@ -81,7 +81,7 @@ const plans: Plan[] = [
     priceSuffix: copy.perMonth,
     pool: { zh: "2,000 位达人池", en: "2,000 creator pool" },
     features: [
-      { zh: "同时运行 1 个 Campaign", en: "Run 1 campaign at a time" },
+      { zh: "同时运行 1 个营销活动", en: "Run 1 campaign at a time" },
       { zh: "自动寻找并筛选目标达人", en: "Find and shortlist creators automatically" },
       { zh: "自动建联、催回复与持续跟进", en: "Automate outreach, nudges, and follow-ups" },
     ],
@@ -99,7 +99,7 @@ const plans: Plan[] = [
     badge: { zh: "推荐雇佣", en: "Most popular" },
     pool: { zh: "100,000 位达人池", en: "100,000 creator pool" },
     features: [
-      { zh: "自动理解 Brief 并创建 Campaign", en: "Understand briefs and create campaigns" },
+      { zh: "自动理解 Brief 并创建营销活动", en: "Understand briefs and create campaigns" },
       { zh: "单次批量搜索、建联 500+ 位达人", en: "Search and contact 500+ creators per campaign" },
       { zh: "自动处理首轮回复并持续追进", en: "Handle first replies and keep following up" },
     ],
@@ -118,7 +118,7 @@ const plans: Plan[] = [
     features: [
       { zh: "包含 Plus 的全部搜索与建联能力", en: "Everything in Plus for search and outreach" },
       { zh: "跨市场、跨平台批量匹配达人", en: "Match creators across markets and platforms" },
-      { zh: "自动生成 Campaign Insight Reports", en: "Generate campaign insight reports" },
+      { zh: "自动生成营销活动洞察报告", en: "Generate campaign insight reports" },
       {
         zh: "用历史表现优化下一轮选人策略",
         en: "Optimize the next shortlist using past performance",
@@ -137,7 +137,7 @@ const plans: Plan[] = [
     pool: { zh: "全量达人 + 专属数据策略", en: "Full creator pool + dedicated data strategy" },
     features: [
       {
-        zh: "Campaign 规划、达人搜索与批量建联",
+        zh: "营销活动规划、达人搜索与批量建联",
         en: "Campaign planning, creator search, and outreach",
       },
       {

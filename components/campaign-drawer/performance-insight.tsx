@@ -5,7 +5,7 @@ import type { Campaign } from "@/lib/types";
 import { ArrowUpRight, BarChart3, Eye, Heart, MousePointerClick, Sparkles, TrendingUp, Video } from "lucide-react";
 
 const L = {
-  title: { zh: "Campaign 效果洞察", en: "Campaign Performance Insight" },
+  title: { zh: "活动效果洞察", en: "Campaign Performance Insight" },
   subtitle: { zh: "汇总内容表现、受众反馈与下一轮优化建议", en: "Content performance, audience response, and recommendations for the next iteration" },
   totalReach: { zh: "总触达", en: "Total reach" },
   publishedContent: { zh: "已发布内容", en: "Published content" },
@@ -13,7 +13,7 @@ const L = {
   attributedSales: { zh: "归因销售额", en: "Attributed sales" },
   vsBenchmark: { zh: "较行业基准", en: "vs. benchmark" },
   contentPerformance: { zh: "内容表现", en: "Content performance" },
-  funnel: { zh: "Campaign 转化漏斗", en: "Campaign funnel" },
+  funnel: { zh: "活动转化漏斗", en: "Campaign funnel" },
   impressions: { zh: "曝光", en: "Impressions" },
   engagements: { zh: "互动", en: "Engagements" },
   clicks: { zh: "点击", en: "Clicks" },

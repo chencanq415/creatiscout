@@ -11,13 +11,13 @@ const L = {
 
 const archive = [
   {
-    title: { zh: "建一个 618 美妆 campaign", en: "Set up a 618 beauty campaign" },
+    title: { zh: "建一个 618 美妆营销活动", en: "Set up a 618 beauty campaign" },
     summary: {
-      zh: "已创建 campaign · 预算 5 万 · 第一轮达人候选已推荐",
+      zh: "已创建营销活动 · 预算 5 万 · 第一轮达人候选已推荐",
       en: "Campaign created · ¥50k budget · first round of creator candidates recommended",
     },
     ts: { zh: "今天 10:21", en: "Today 10:21" },
-    tag: { zh: "campaign", en: "campaign" },
+    tag: { zh: "营销活动", en: "campaign" },
   },
   {
     title: {

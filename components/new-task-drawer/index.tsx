@@ -17,14 +17,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const L = {
   seedWithContext: {
-    zh: "你好，我是 {name}。我正在帮你跟进「{campaign}」这个 campaign，可以问我达人匹配、外联进度、报价、风险卡点等任何细节。",
+    zh: "你好，我是 {name}。我正在帮你跟进「{campaign}」这个营销活动，可以问我达人匹配、外联进度、报价、风险卡点等任何细节。",
     en: "Hi, I'm {name}. I'm currently on top of the \"{campaign}\" campaign for you — ask me anything about creator matching, outreach progress, quotes, or blockers.",
   },
   seedDefault: {
-    zh: "你好，我是 {name} · {role}。告诉我你要做什么 — 可以是新建 campaign、起草外联邮件、拉一批达人候选，或者别的。",
+    zh: "你好，我是 {name} · {role}。告诉我你要做什么 — 可以是新建营销活动、起草外联邮件、拉一批达人候选，或者别的。",
     en: "Hi, I'm {name} · {role}. Tell me what you need — create a campaign, draft outreach emails, pull a creator shortlist, or anything else.",
   },
-  newCampaignFallback: { zh: "新 Campaign", en: "New Campaign" },
+  newCampaignFallback: { zh: "新营销活动", en: "New Campaign" },
   campaignCreatedMsg: {
     zh: "好的，我已经创建了「{name}」。预算 ¥{budget}，预计 30 天周期。我正在做 brief 解析，几分钟后会给出达人候选。",
     en: "Done — I've created \"{name}\". Budget ¥{budget}, planned as a 30-day run. I'm parsing the brief now and will surface creator candidates in a few minutes.",
@@ -34,7 +34,7 @@ const L = {
     en: "Budget ¥{budget} · {platforms} · Owned by {name}",
   },
   nonCampaignReply: {
-    zh: "好的，我记下了。需要我帮你转成一个 campaign 任务么？告诉我大致预算和周期，我就开干。",
+    zh: "好的，我记下了。需要我帮你转成一个营销活动任务么？告诉我大致预算和周期，我就开干。",
     en: "Got it, noted. Want me to turn this into a campaign task? Give me a rough budget and timeline and I'll get started.",
   },
   resizeAria: { zh: "拖动调整数字员工侧板宽度", en: "Drag to resize the digital employee panel" },
@@ -44,7 +44,7 @@ const L = {
   assignTo: { zh: "派给", en: "Assign to" },
   thinking: { zh: "{name} 正在思考…", en: "{name} is thinking…" },
   quickPrompt1: {
-    zh: "帮我建一个 618 美妆 campaign，预算 5 万",
+    zh: "帮我建一个 618 美妆营销活动，预算 5 万",
     en: "Create a 618 beauty campaign with a ¥50k budget",
   },
   quickPrompt2: {
@@ -58,10 +58,10 @@ const L = {
   },
   addAttachment: { zh: "添加图片或文件", en: "Add images or files" },
   attachmentOnlyPrompt: {
-    zh: "请根据这些素材创建一个 Campaign",
+    zh: "请根据这些素材创建一个营销活动",
     en: "Create a campaign from these materials",
   },
-  campaignCreated: { zh: "已创建 Campaign", en: "Campaign Created" },
+  campaignCreated: { zh: "已创建营销活动", en: "Campaign Created" },
   openDetails: { zh: "点击打开详情 →", en: "Open details →" },
 } as const;
 

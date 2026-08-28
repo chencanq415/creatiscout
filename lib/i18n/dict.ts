@@ -90,8 +90,8 @@ export const dict = {
       en: "Employee only prepares artifacts; every step is moved forward by you",
     },
     viewLogs: { zh: "查看完整运行记录", en: "View full run history" },
-    exportReport: { zh: "导出 campaign 报告", en: "Export campaign report" },
-    archive: { zh: "归档 campaign", en: "Archive campaign" },
+    exportReport: { zh: "导出营销活动报告", en: "Export campaign report" },
+    archive: { zh: "归档营销活动", en: "Archive campaign" },
   },
   // Dashboard
   dashboard: {
@@ -117,7 +117,7 @@ export const dict = {
       zh: "本周任务承接 / 单员工容量上限",
       en: "Tasks this week / capacity ceiling",
     },
-    roi: { zh: "进行中 Campaign · ROI", en: "Running Campaigns · ROI" },
+    roi: { zh: "进行中的营销活动 · ROI", en: "Running Campaigns · ROI" },
     roiSub: {
       zh: "实时 GMV / 投放成本 · 与昨日对比",
       en: "Live GMV vs spend · vs yesterday",

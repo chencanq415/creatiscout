@@ -34,7 +34,7 @@ const L = {
   tabSelection: { zh: "达人选品", en: "Product Selection" },
   tabLogistics: { zh: "物流追踪", en: "Logistics Tracking" },
   modeConfig: {
-    zh: "本 campaign 启用的选品模式（可混用）",
+    zh: "本营销活动启用的选品模式（可混用）",
     en: "Sample modes enabled for this campaign (mixable)",
   },
   modeDirect: { zh: "品牌直邮", en: "Brand Direct Mail" },

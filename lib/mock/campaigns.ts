@@ -25,7 +25,7 @@ export const campaigns: Campaign[] = [
     compensation: {
       flatFee: { currency: "USD", minFee: 500, maxFee: 1300, totalBudget: 50000 },
       freeProducts: [
-        { id: "prod-honeylab-kit", name: "Summer Skincare Gift Box", currency: "USD", value: 120, productLink: "https://example.com/products/summer-kit" },
+        { id: "prod-honeylab-kit", name: "Summer Skincare Gift Box", currency: "USD", value: 120, productLink: "https://example.com/products/summer-kit", description: "包含洁面、精华与防晒三款夏日主推单品，适合通勤护肤内容创作。" },
       ],
     },
     creatorRequirements: {
@@ -34,6 +34,10 @@ export const campaigns: Campaign[] = [
       categories: ["Beauty", "Skincare"],
       minimumFollowers: 10000,
       contentTypes: ["TikTok Video", "RedNote Post"],
+      deliverables: [
+        { platform: "TikTok", minimumFollowers: 10000, contentTypes: ["Video"], notes: "视频时长不少于 15 秒，需展示至少 2 款产品。" },
+        { platform: "Instagram", minimumFollowers: 15000, contentTypes: ["Reel", "Story"], notes: "产品需在画面中清晰露出，并添加品牌账号。" },
+      ],
     },
     termsAndConditions: "Content must remain live for at least 90 days. Brand approval is required before publishing.",
     attachments: [{ id: "att-618-brief", name: "Honeylab_618_Campaign_Brief.pdf" }],
@@ -62,7 +66,7 @@ export const campaigns: Campaign[] = [
     delivered: 0,
     budget: 30000,
     spent: 8200,
-    platforms: ["RedNote"],
+    platforms: ["TikTok US", "Instagram"],
     briefSummary: {
       zh: "情侣礼盒共创款，主打仪式感与礼物开箱体验。",
       en: "Couples' co-created gift box focused on rituals and unboxing experience.",
@@ -72,7 +76,10 @@ export const campaigns: Campaign[] = [
       freeProducts: [
         { id: "prod-mumu-box", name: "520 Couple Gift Box", currency: "USD", value: 88, productLink: "https://example.com/products/520-box" },
       ],
-      giftCard: { name: "Content production allowance", currency: "USD", value: 100 },
+      giftCards: [
+        { id: "gift-mumu-80", name: "MuMu gifting credit", currency: "USD", value: 80, description: "可用于 MuMu 官网选购任意礼物组合。" },
+        { id: "gift-mumu-120", name: "Premium creator credit", currency: "USD", value: 120, description: "适用于高质量图文或短视频内容的创作补贴。" },
+      ],
     },
     creatorRequirements: {
       regions: ["China", "Singapore"],
@@ -80,6 +87,10 @@ export const campaigns: Campaign[] = [
       categories: ["Lifestyle", "Couples"],
       minimumFollowers: 5000,
       contentTypes: ["RedNote Post", "Short Video"],
+      deliverables: [
+        { platform: "TikTok", minimumFollowers: 10000, contentTypes: ["Post", "Video"], notes: "需使用联盟链接，并突出礼盒开箱场景。" },
+        { platform: "Instagram", minimumFollowers: 8000, contentTypes: ["Reel", "Story"], notes: "Story 需添加可点击的联盟链接。" },
+      ],
     },
     termsAndConditions: "Affiliate disclosure and campaign hashtags are required.",
     attachments: [],
@@ -116,7 +127,7 @@ export const campaigns: Campaign[] = [
     compensation: {
       flatFee: { currency: "USD", minFee: 800, maxFee: 1800, totalBudget: 80000 },
       freeProducts: [
-        { id: "prod-lumio-set", name: "Lumio Yoga Set", currency: "USD", value: 160, productLink: "https://example.com/products/yoga-set" },
+        { id: "prod-lumio-set", name: "Lumio Yoga Set", currency: "USD", value: 160, productLink: "https://example.com/products/yoga-set", description: "含运动内衣与高腰瑜伽裤，适合训练、穿搭和生活方式内容。" },
       ],
     },
     creatorRequirements: {
@@ -125,6 +136,10 @@ export const campaigns: Campaign[] = [
       categories: ["Fitness", "Yoga", "Athleisure"],
       minimumFollowers: 20000,
       contentTypes: ["TikTok Video", "Instagram Reel"],
+      deliverables: [
+        { platform: "TikTok", minimumFollowers: 10000, contentTypes: ["Video"], notes: "视频需包含至少一个完整的训练或拉伸动作。" },
+        { platform: "YouTube", minimumFollowers: 20000, contentTypes: ["Short", "Video"], notes: "内容需在前 30 秒内展示完整运动套装。" },
+      ],
     },
     termsAndConditions: "Creators must show the full outfit and include at least one movement sequence.",
     attachments: [{ id: "att-yoga-shotlist", name: "Lumio_Shot_List.pdf" }],
@@ -155,7 +170,7 @@ export const campaigns: Campaign[] = [
     spent: 0,
     platforms: ["RedNote"],
     briefSummary: {
-      zh: "区域性试饮 campaign。",
+      zh: "区域性试饮营销活动。",
       en: "Regional tasting campaign.",
     },
     compensation: {
@@ -184,7 +199,7 @@ export const campaigns: Campaign[] = [
     id: "cmp-winter-skincare",
     name: { zh: "冬季护肤年度复盘", en: "Winter Skincare Annual Review" },
     brand: { zh: "蜜语 Honeylab", en: "Honeylab" },
-    description: { zh: "冬季护肤年度整合营销 Campaign。", en: "Annual integrated campaign for the winter skincare portfolio." },
+    description: { zh: "冬季护肤年度整合营销活动。", en: "Annual integrated campaign for the winter skincare portfolio." },
     goal: "brand_awareness",
     category: "Beauty & Skincare",
     status: "closed",
@@ -198,7 +213,7 @@ export const campaigns: Campaign[] = [
     spent: 118200,
     platforms: ["RedNote", "Douyin"],
     briefSummary: {
-      zh: "年度大盘 campaign，已完结，ROI 3.2x。",
+      zh: "年度大盘营销活动，已完结，ROI 3.2x。",
       en: "Annual flagship campaign, completed with 3.2x ROI.",
     },
     compensation: {
