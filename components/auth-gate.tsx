@@ -10,12 +10,17 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hydrated = useAuthHydrated();
   const currentUser = useAuthStore((state) => state.currentUser);
+  const loginDemo = useAuthStore((state) => state.loginDemo);
+  const isPublicDemo = process.env.NEXT_PUBLIC_GITHUB_PAGES === "true";
 
   useEffect(() => {
-    if (hydrated && !currentUser) {
-      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    if (!hydrated || currentUser) return;
+    if (isPublicDemo) {
+      loginDemo();
+      return;
     }
-  }, [currentUser, hydrated, pathname, router]);
+    router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+  }, [currentUser, hydrated, isPublicDemo, loginDemo, pathname, router]);
 
   if (!hydrated || !currentUser) {
     return (

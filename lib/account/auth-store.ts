@@ -160,11 +160,27 @@ export function useAuthHydrated() {
       setHydrated(true);
       return;
     }
-    const finishHydration = () => setHydrated(true);
+    let mounted = true;
+    const finishHydration = () => {
+      if (mounted) setHydrated(true);
+    };
     const unsubscribe = persistApi.onFinishHydration(finishHydration);
-    if (persistApi.hasHydrated()) finishHydration();
-    else void persistApi.rehydrate();
-    return unsubscribe;
+    if (persistApi.hasHydrated()) {
+      finishHydration();
+    } else {
+      try {
+        const rehydration = persistApi.rehydrate();
+        // In static deployments a storage read can fail silently. The app can
+        // still continue to the sign-in or public-demo flow with an empty session.
+        void Promise.resolve(rehydration).finally(finishHydration);
+      } catch {
+        finishHydration();
+      }
+    }
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   return hydrated;
