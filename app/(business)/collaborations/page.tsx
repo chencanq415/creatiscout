@@ -70,6 +70,15 @@ const L = {
   allStatuses: { zh: "全部状态", en: "All statuses" },
   confirm: { zh: "确认", en: "Confirm" },
   reject: { zh: "拒绝", en: "Reject" },
+  modify: { zh: "修改", en: "Modify" },
+  createOffer: { zh: "创建 Offer", en: "Create offer" },
+  negotiationBrief: { zh: "Offer 简报", en: "Offer brief" },
+  createOfferBrief: { zh: "创建 Offer", en: "Create offer" },
+  negotiationHint: { zh: "更新达人反馈的合作内容与报价。", en: "Update the deliverable and compensation shared by the creator." },
+  saveChanges: { zh: "保存修改", en: "Save changes" },
+  createAndSendOffer: { zh: "创建并发送 Offer", en: "Create & send offer" },
+  cancel: { zh: "取消", en: "Cancel" },
+  reconfirmIntent: { zh: "重新发送 Offer，确认达人意向", en: "Resend offer and reconfirm creator interest" },
   editOffer: { zh: "编辑 Offer", en: "Edit offer" },
   submitDraft: { zh: "提交草稿", en: "Submit draft" },
   approveDraft: { zh: "审核通过", en: "Approve draft" },
@@ -95,7 +104,7 @@ const L = {
   shortlist: { zh: "候选达人", en: "Shortlist" },
   outreach: { zh: "达人建联", en: "Outreach" },
   offer: { zh: "议价中", en: "Negotiation" },
-  confirmed: { zh: "确认合作", en: "Offer" },
+  confirmed: { zh: "议价中", en: "Offer" },
   draft: { zh: "稿件创作", en: "Draft" },
   publication: { zh: "作品发布", en: "Publication" },
   payment: { zh: "款项结算", en: "Payment" },
@@ -107,7 +116,7 @@ const stageLabels = { aiMatching: L.aiMatching, shortlist: L.shortlist, outreach
 const stageVolumes: Record<CollaborationStage, number> = { aiMatching: 32, shortlist: 6, outreach: 7, confirmed: 5, draft: 3, publication: 2, payment: 2, tracking: 7 };
 const stageSubStatuses: Partial<Record<CollaborationStage, CollaborationSubStatus[]>> = {
   outreach: ["readyToContact", "outreachAwaitingResponse", "outreachAwaitingConfirmation", "outreachDeclined"],
-  confirmed: ["offerAccepted", "offerDeclined", "offerAwaitingConfirmation"],
+  confirmed: ["offerAwaitingConfirmation", "offerAccepted", "offerDeclined"],
   draft: ["draftAwaitingSubmission", "draftUnderReview", "draftApproved", "draftRejected"],
   publication: ["proofAwaitingSubmission", "proofUnderReview", "proofApproved", "proofRejected"],
   payment: ["paymentPending", "paymentCompleted"],
@@ -115,8 +124,8 @@ const stageSubStatuses: Partial<Record<CollaborationStage, CollaborationSubStatu
 const subStatusLabels: Record<CollaborationSubStatus, { zh: string; en: string }> = {
   readyToContact: { zh: "待建联", en: "Ready to contact" },
   outreachAwaitingResponse: { zh: "待反馈", en: "Awaiting response" },
-  outreachAwaitingConfirmation: { zh: "待确认", en: "Awaiting confirmation" },
-  outreachDeclined: { zh: "已拒绝", en: "Declined" },
+  outreachAwaitingConfirmation: { zh: "有意向", en: "Interested" },
+  outreachDeclined: { zh: "已拒绝", en: "Rejected" },
   offerAccepted: { zh: "已接受", en: "Accepted" },
   offerDeclined: { zh: "已拒绝", en: "Declined" },
   offerAwaitingConfirmation: { zh: "待确认", en: "Pending" },
@@ -146,6 +155,7 @@ type CollaborationRow = {
   stage: CollaborationStage;
   subStatus: CollaborationSubStatus | undefined;
   deliverable: string;
+  compensation: number;
   dueDate: string;
   updated: string;
 };
@@ -161,12 +171,14 @@ export default function CollaborationsPage() {
   const [rowOverrides, setRowOverrides] = useState<Record<string, Partial<CollaborationRow>>>({});
   const [removedRowIds, setRemovedRowIds] = useState<string[]>([]);
   const [selectedCreatorId, setSelectedCreatorId] = useState<string | null>(null);
+  const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
+  const [creatingOfferId, setCreatingOfferId] = useState<string | null>(null);
 
   const baseRows = useMemo(() => stages.flatMap((stage, stageIndex) => Array.from({ length: stageVolumes[stage] }, (_, index) => {
     const creator = creators[(index + stageIndex) % creators.length];
     const campaign = campaigns[(index + stageIndex) % Math.max(campaigns.length, 1)];
     const statuses = stageSubStatuses[stage];
-    return { id: `${stage}-${index}-${creator.id}`, campaign, creator, stage, subStatus: statuses?.[index % statuses.length], deliverable: ["TikTok Video × 2", "Instagram Reel × 1", "RedNote Post × 2", "YouTube Integration × 1"][index % 4], dueDate: ["Aug 20", "Aug 23", "Aug 27", "Sep 02"][index % 4], updated: ["12 min", "2 hr", "Yesterday", "3 days"][index % 4] };
+    return { id: `${stage}-${index}-${creator.id}`, campaign, creator, stage, subStatus: statuses?.[index % statuses.length], deliverable: ["TikTok Video × 2", "Instagram Reel × 1", "RedNote Post × 2", "YouTube Integration × 1"][index % 4], compensation: creator.averageQuote ?? 0, dueDate: ["Aug 20", "Aug 23", "Aug 27", "Sep 02"][index % 4], updated: ["12 min", "2 hr", "Yesterday", "3 days"][index % 4] };
   })).filter((row): row is CollaborationRow => Boolean(row.campaign)), [campaigns]);
   const rows = baseRows.filter((row) => !removedRowIds.includes(row.id)).map((row) => ({ ...row, ...rowOverrides[row.id] }));
   const stageCounts = stages.reduce((counts, stage) => ({ ...counts, [stage]: rows.filter((row) => row.stage === stage).length }), {} as Record<CollaborationStage, number>);
@@ -178,6 +190,8 @@ export default function CollaborationsPage() {
   const usesEstimatedPublishDate = stageFilter === "confirmed" || stageFilter === "draft" || isPublicationStage;
   const canFilterByStatus = !isDiscoveryStage && stageFilter !== "tracking" && Boolean(stageSubStatuses[stageFilter]?.length);
   const selectedCreator = creators.find((creator) => creator.id === selectedCreatorId) ?? null;
+  const editingOffer = rows.find((row) => row.id === editingOfferId) ?? null;
+  const creatingOffer = rows.find((row) => row.id === creatingOfferId) ?? null;
 
   const moveRow = (row: CollaborationRow, stage: CollaborationStage) => {
     setRowOverrides((current) => ({ ...current, [row.id]: { stage, subStatus: stageSubStatuses[stage]?.[0], updated: "Just now" } }));
@@ -186,6 +200,12 @@ export default function CollaborationsPage() {
   };
   const removeRow = (row: CollaborationRow) => setRemovedRowIds((current) => [...current, row.id]);
   const updateSubStatus = (row: CollaborationRow, subStatus: CollaborationSubStatus) => setRowOverrides((current) => ({ ...current, [row.id]: { subStatus, updated: "Just now" } }));
+  const updateOfferBrief = (row: CollaborationRow, values: Pick<CollaborationRow, "deliverable" | "compensation" | "dueDate">, resend: boolean, create = false) => {
+    setRowOverrides((current) => ({ ...current, [row.id]: { ...values, stage: create ? "confirmed" : row.stage, subStatus: create || resend ? "offerAwaitingConfirmation" : row.subStatus, updated: "Just now" } }));
+    setEditingOfferId(null);
+    setCreatingOfferId(null);
+    if (create) setStageFilter("confirmed");
+  };
   const filteredRows = rows.filter((row) => {
     const text = `${row.creator.name} ${row.creator.handle} ${l(row.campaign.name)} ${l(row.campaign.brand)}`.toLowerCase();
     return (campaignFilter === "all" || row.campaign.id === campaignFilter) && row.stage === stageFilter && (!canFilterByStatus || statusFilter === "all" || row.subStatus === statusFilter) && (!query || text.includes(query.toLowerCase()));
@@ -220,13 +240,15 @@ export default function CollaborationsPage() {
             <table className={cn("w-full text-left", isDiscoveryStage ? "min-w-[1420px]" : isOutreachStage ? "min-w-[1250px]" : isTrackingStage ? "min-w-[1280px]" : "min-w-[1050px]")}>
               <thead className="border-b border-border bg-surface-warm/70 text-[10px] font-semibold uppercase tracking-wider text-muted"><tr>{isDiscoveryStage ? <><th className="px-5 py-3">{l(L.creator)}</th><th className="px-4 py-3">{l(L.campaign)}</th><th className="px-4 py-3">{l(L.matching)}</th><th className="px-4 py-3">{l(L.recentPosts)}</th><th className="px-4 py-3">{l(L.averageEngagement30Days)}</th><th className="px-4 py-3">{l(L.averageViews30Days)}</th><th className="sticky right-0 z-20 border-l border-border bg-surface-warm px-4 py-3 text-right">{l(L.action)}</th></> : isOutreachStage ? <><th className="px-5 py-3">{l(L.creator)}</th><th className="px-4 py-3">{l(L.campaign)}</th><th className="px-4 py-3">{l(L.status)}</th><th className="px-4 py-3">{l(L.collaborationIntent)}</th><th className="px-4 py-3">{l(L.deliverable)}</th><th className="px-4 py-3">{l(L.compensation)}</th><th className="px-4 py-3">{l(L.estimatedPublishDate)}</th><th className="px-4 py-3">{l(L.updated)}</th><th className="sticky right-0 z-20 border-l border-border bg-surface-warm px-4 py-3 text-right">{l(L.action)}</th></> : isTrackingStage ? <><th className="px-5 py-3">{l(L.creator)}</th><th className="px-4 py-3">{l(L.campaign)}</th><th className="px-4 py-3">{l(L.contentLink)}</th><th className="px-4 py-3">{l(L.impressions)}</th><th className="px-4 py-3">{l(L.likes)}</th><th className="px-4 py-3">{l(L.comments)}</th><th className="px-4 py-3">{l(L.engagementRate)}</th><th className="sticky right-0 z-20 border-l border-border bg-surface-warm px-4 py-3 text-right">{l(L.action)}</th></> : <><th className="px-5 py-3">{l(L.creator)}</th><th className="px-4 py-3">{l(L.campaign)}</th>{hasSubStatuses && <th className="px-4 py-3">{l(L.status)}</th>}<th className="px-4 py-3">{l(L.deliverable)}</th><th className="px-4 py-3">{l(L.compensation)}</th><th className="px-4 py-3">{l(usesEstimatedPublishDate ? L.estimatedPublishDate : L.dueDate)}</th>{isPublicationStage && <th className="px-4 py-3">{l(L.proofSubmittedAt)}</th>}<th className="px-4 py-3">{l(L.updated)}</th><th className="sticky right-0 z-20 border-l border-border bg-surface-warm px-4 py-3 text-right">{l(L.action)}</th></>}</tr></thead>
               <tbody className="divide-y divide-border">
-                {filteredRows.map((row) => isDiscoveryStage ? <MatchingRow key={row.id} row={row} locale={l} onMove={moveRow} onRemove={removeRow} onViewCreator={setSelectedCreatorId} /> : isOutreachStage ? <OutreachRow key={row.id} row={row} locale={l} onMove={moveRow} onRemove={removeRow} onViewCreator={setSelectedCreatorId} onStatusChange={updateSubStatus} /> : isTrackingStage ? <TrackingRow key={row.id} row={row} locale={l} onMove={moveRow} onRemove={removeRow} onViewCreator={setSelectedCreatorId} onStatusChange={updateSubStatus} /> : <tr key={row.id} className="transition-colors hover:bg-page/70"><td className="px-5 py-4"><div className="flex items-center gap-2.5"><img src={row.creator.avatar} alt="" className="h-9 w-9 rounded-full object-cover" /><div><div className="text-[12px] font-semibold text-ink">{row.creator.name}</div><div className="text-[10px] text-muted">{row.creator.handle}</div></div></div></td><td className="px-4 py-4"><div className="text-[12px] font-medium text-ink">{l(row.campaign.name)}</div><div className="text-[10px] text-muted">{l(row.campaign.brand)}</div></td>{hasSubStatuses && <td className="px-4 py-4"><StatusActions row={row} locale={l} /></td>}<td className="px-4 py-4 text-[11px] text-slate">{row.deliverable}</td><td className="px-4 py-4 text-[11px] font-semibold text-ink">{formatCurrency(row.creator.averageQuote ?? 0)}</td><td className="px-4 py-4 text-[11px] text-slate">{row.dueDate}</td>{isPublicationStage && <td className="px-4 py-4 text-[11px] text-slate">{row.updated === "12 min" ? "Aug 18 · 10:32" : row.updated === "2 hr" ? "Aug 19 · 14:20" : "Aug 20 · 09:45"}</td>}<td className="px-4 py-4 text-[10px] text-muted">{row.updated}</td><td className="sticky right-0 z-10 border-l border-border bg-surface px-4 py-4 text-right"><InlineRowActions row={row} locale={l} onMove={moveRow} onRemove={removeRow} onViewCreator={setSelectedCreatorId} onStatusChange={updateSubStatus} /></td></tr>)}
+                {filteredRows.map((row) => isDiscoveryStage ? <MatchingRow key={row.id} row={row} locale={l} onMove={moveRow} onRemove={removeRow} onViewCreator={setSelectedCreatorId} /> : isOutreachStage ? <OutreachRow key={row.id} row={row} locale={l} onMove={moveRow} onRemove={removeRow} onViewCreator={setSelectedCreatorId} onStatusChange={updateSubStatus} onCreateOffer={setCreatingOfferId} /> : isTrackingStage ? <TrackingRow key={row.id} row={row} locale={l} onMove={moveRow} onRemove={removeRow} onViewCreator={setSelectedCreatorId} onStatusChange={updateSubStatus} /> : <tr key={row.id} className="transition-colors hover:bg-page/70"><td className="px-5 py-4"><div className="flex items-center gap-2.5"><img src={row.creator.avatar} alt="" className="h-9 w-9 rounded-full object-cover" /><div><div className="text-[12px] font-semibold text-ink">{row.creator.name}</div><div className="text-[10px] text-muted">{row.creator.handle}</div></div></div></td><td className="px-4 py-4"><div className="text-[12px] font-medium text-ink">{l(row.campaign.name)}</div><div className="text-[10px] text-muted">{l(row.campaign.brand)}</div></td>{hasSubStatuses && <td className="px-4 py-4"><StatusActions row={row} locale={l} /></td>}<td className="px-4 py-4 text-[11px] text-slate">{row.deliverable}</td><td className="px-4 py-4 text-[11px] font-semibold text-ink">{formatCurrency(row.compensation)}</td><td className="px-4 py-4 text-[11px] text-slate">{row.dueDate}</td>{isPublicationStage && <td className="px-4 py-4 text-[11px] text-slate">{row.updated === "12 min" ? "Aug 18 · 10:32" : row.updated === "2 hr" ? "Aug 19 · 14:20" : "Aug 20 · 09:45"}</td>}<td className="px-4 py-4 text-[10px] text-muted">{row.updated}</td><td className="sticky right-0 z-10 border-l border-border bg-surface px-4 py-4 text-right"><InlineRowActions row={row} locale={l} onMove={moveRow} onRemove={removeRow} onViewCreator={setSelectedCreatorId} onStatusChange={updateSubStatus} onEditOffer={setEditingOfferId} /></td></tr>)}
               </tbody>
             </table>
           </div>
           {filteredRows.length === 0 && <div className="px-6 py-16 text-center text-[12px] text-muted">{l(L.noResults)}</div>}
         </div>
         {selectedCreator && <CreatorDetailDrawer key={selectedCreator.id} creator={selectedCreator} locale={l} onClose={() => setSelectedCreatorId(null)} />}
+        {editingOffer && <OutreachBriefDialog row={editingOffer} locale={l} onClose={() => setEditingOfferId(null)} onSave={updateOfferBrief} />}
+        {creatingOffer && <OutreachBriefDialog row={creatingOffer} locale={l} mode="create" onClose={() => setCreatingOfferId(null)} onSave={updateOfferBrief} />}
       </div>
     </div>
   );
@@ -246,7 +268,7 @@ function MatchingRow({ row, locale: l, onMove, onRemove, onViewCreator }: { row:
   </tr>;
 }
 
-function OutreachRow({ row, locale: l, onMove, onRemove, onViewCreator, onStatusChange }: { row: CollaborationRow; locale: (value: { zh: string; en: string }) => string; onMove: (row: CollaborationRow, stage: CollaborationStage) => void; onRemove: (row: CollaborationRow) => void; onViewCreator: (creatorId: string) => void; onStatusChange: (row: CollaborationRow, status: CollaborationSubStatus) => void }) {
+function OutreachRow({ row, locale: l, onMove, onRemove, onViewCreator, onStatusChange, onCreateOffer }: { row: CollaborationRow; locale: (value: { zh: string; en: string }) => string; onMove: (row: CollaborationRow, stage: CollaborationStage) => void; onRemove: (row: CollaborationRow) => void; onViewCreator: (creatorId: string) => void; onStatusChange: (row: CollaborationRow, status: CollaborationSubStatus) => void; onCreateOffer: (rowId: string) => void }) {
   const hasFeedback = row.subStatus === "outreachAwaitingConfirmation";
   const estimatedPublishDate = row.id.includes("outreach-6-") ? "Sep 16" : "Sep 08";
   const intentLevel = row.subStatus === "outreachDeclined" ? 1 : row.subStatus === "outreachAwaitingConfirmation" ? 3 : row.subStatus === "outreachAwaitingResponse" ? 2 : 0;
@@ -257,10 +279,10 @@ function OutreachRow({ row, locale: l, onMove, onRemove, onViewCreator, onStatus
     <td className="px-4 py-4"><StatusActions row={row} locale={l} /></td>
     <td className="px-4 py-4"><div className="flex w-[86px] items-center gap-1.5" aria-label={`${l(L.collaborationIntent)}: ${intentLevel}/3`}>{[1, 2, 3].map((level) => <span key={level} className={cn("h-1.5 flex-1 rounded-full", level <= intentLevel ? intentTone : "bg-page")} />)}</div></td>
     <td className="px-4 py-4 text-[11px] text-slate">{hasFeedback ? row.deliverable : "—"}</td>
-    <td className="px-4 py-4 text-[11px] font-semibold text-ink">{hasFeedback ? formatCurrency(row.creator.averageQuote ?? 0) : "—"}</td>
+    <td className="px-4 py-4 text-[11px] font-semibold text-ink">{hasFeedback ? formatCurrency(row.compensation) : "—"}</td>
     <td className="px-4 py-4 text-[11px] text-slate">{hasFeedback ? estimatedPublishDate : "—"}</td>
     <td className="px-4 py-4 text-[10px] text-muted">{row.updated}</td>
-    <td className="sticky right-0 z-10 border-l border-border bg-surface px-4 py-4 text-right"><OutreachActions row={row} locale={l} onMove={onMove} onRemove={onRemove} onViewCreator={onViewCreator} onStatusChange={onStatusChange} /></td>
+    <td className="sticky right-0 z-10 border-l border-border bg-surface px-4 py-4 text-right"><OutreachActions row={row} locale={l} onMove={onMove} onRemove={onRemove} onViewCreator={onViewCreator} onStatusChange={onStatusChange} onCreateOffer={onCreateOffer} /></td>
   </tr>;
 }
 
@@ -281,12 +303,34 @@ function TrackingRow({ row, locale: l, onMove, onRemove, onViewCreator, onStatus
   </tr>;
 }
 
-function OutreachActions({ row, locale: l, onMove, onRemove, onViewCreator, onStatusChange }: { row: CollaborationRow; locale: (value: { zh: string; en: string }) => string; onMove: (row: CollaborationRow, stage: CollaborationStage) => void; onRemove: (row: CollaborationRow) => void; onViewCreator: (creatorId: string) => void; onStatusChange: (row: CollaborationRow, status: CollaborationSubStatus) => void }) {
+function OutreachActions({ row, locale: l, onMove, onRemove, onViewCreator, onStatusChange, onCreateOffer }: { row: CollaborationRow; locale: (value: { zh: string; en: string }) => string; onMove: (row: CollaborationRow, stage: CollaborationStage) => void; onRemove: (row: CollaborationRow) => void; onViewCreator: (creatorId: string) => void; onStatusChange: (row: CollaborationRow, status: CollaborationSubStatus) => void; onCreateOffer: (rowId: string) => void }) {
   const actionClassName = "inline-flex h-7 items-center justify-center rounded-[7px] border border-border bg-white px-2 text-[10px] font-medium text-slate transition hover:border-border-strong hover:text-ink";
   const detail = <Link href={`/collaborations/detail?record=${encodeURIComponent(row.id)}`} className={actionClassName}>{l(L.details)}</Link>;
   if (row.subStatus === "readyToContact") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onStatusChange(row, "outreachAwaitingResponse")} className={actionClassName}>{l(L.contactNow)}</button>{detail}</div>;
-  if (row.subStatus === "outreachAwaitingConfirmation") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onMove(row, "confirmed")} className={actionClassName}>{l(L.confirm)}</button><button type="button" onClick={() => onStatusChange(row, "outreachDeclined")} className={actionClassName}>{l(L.reject)}</button>{detail}</div>;
+  if (row.subStatus === "outreachAwaitingConfirmation") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onCreateOffer(row.id)} className={actionClassName}>{l(L.createOffer)}</button>{detail}</div>;
   return <div className="flex justify-end">{detail}</div>;
+}
+
+function OutreachBriefDialog({ row, locale: l, mode = "edit", onClose, onSave }: { row: CollaborationRow; locale: (value: { zh: string; en: string }) => string; mode?: "create" | "edit"; onClose: () => void; onSave: (row: CollaborationRow, values: Pick<CollaborationRow, "deliverable" | "compensation" | "dueDate">, reconfirm: boolean, create?: boolean) => void }) {
+  const [deliverable, setDeliverable] = useState(row.deliverable);
+  const [compensation, setCompensation] = useState(String(row.compensation));
+  const [publishDate, setPublishDate] = useState(row.dueDate);
+  const [reconfirm, setReconfirm] = useState(false);
+  const save = () => onSave(row, { deliverable: deliverable.trim() || row.deliverable, compensation: Number(compensation.replace(/[^\d.]/g, "")) || row.compensation, dueDate: publishDate.trim() || row.dueDate }, reconfirm, mode === "create");
+
+  return <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <button type="button" aria-label="Close negotiation brief" onClick={onClose} className="absolute inset-0 bg-navy/20" />
+    <section role="dialog" aria-modal="true" aria-labelledby="negotiation-brief-title" className="relative w-full max-w-[520px] overflow-hidden rounded-[14px] border border-border bg-surface">
+      <header className="border-b border-border px-5 py-4"><p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{l(L.confirmed)}</p><h2 id="negotiation-brief-title" className="mt-1 text-[17px] font-bold text-navy">{l(mode === "create" ? L.createOfferBrief : L.negotiationBrief)}</h2><p className="mt-1 text-[11px] text-slate">{l(L.negotiationHint)}</p></header>
+      <div className="space-y-4 px-5 py-5"><div className="rounded-[10px] bg-surface-warm px-4 py-3"><div className="text-[12px] font-semibold text-ink">{row.creator.name}</div><div className="mt-1 text-[10px] text-muted">{l(row.campaign.name)} · {l(row.campaign.brand)}</div></div>
+        <label className="block"><span className="text-[11px] font-medium text-ink">{l(L.deliverable)}</span><input value={deliverable} onChange={(event) => setDeliverable(event.target.value)} className="mt-1.5 h-10 w-full rounded-[8px] border border-border bg-white px-3 text-[12px] text-ink outline-none focus:border-brand/40" /></label>
+        <label className="block"><span className="text-[11px] font-medium text-ink">{l(L.compensation)}</span><input inputMode="decimal" value={compensation} onChange={(event) => setCompensation(event.target.value)} className="mt-1.5 h-10 w-full rounded-[8px] border border-border bg-white px-3 text-[12px] text-ink outline-none focus:border-brand/40" /></label>
+        <label className="block"><span className="text-[11px] font-medium text-ink">{l(L.estimatedPublishDate)}</span><input value={publishDate} onChange={(event) => setPublishDate(event.target.value)} className="mt-1.5 h-10 w-full rounded-[8px] border border-border bg-white px-3 text-[12px] text-ink outline-none focus:border-brand/40" /></label>
+        {mode === "edit" && <label className="flex cursor-pointer items-center gap-2.5 rounded-[9px] border border-border px-3 py-3 text-[11px] text-ink"><input type="checkbox" checked={reconfirm} onChange={(event) => setReconfirm(event.target.checked)} className="h-3.5 w-3.5 accent-brand" />{l(L.reconfirmIntent)}</label>}
+      </div>
+      <footer className="flex justify-end gap-2 border-t border-border px-5 py-3.5"><button type="button" onClick={onClose} className="h-8 rounded-[7px] border border-border px-3 text-[10px] font-medium text-slate hover:text-ink">{l(L.cancel)}</button><button type="button" onClick={save} className="h-8 rounded-[7px] bg-brand px-3 text-[10px] font-semibold text-white hover:bg-brand-hover">{l(mode === "create" ? L.createAndSendOffer : L.saveChanges)}</button></footer>
+    </section>
+  </div>;
 }
 
 function CreatorDetailDrawer({ creator, locale: l, onClose }: { creator: (typeof creators)[number]; locale: (value: { zh: string; en: string }) => string; onClose: () => void }) {
@@ -321,12 +365,12 @@ function formatCompactMetric(value: number) {
   return String(value);
 }
 
-function InlineRowActions({ row, locale: l, onMove, onRemove, onViewCreator, onStatusChange }: { row: CollaborationRow; locale: (value: { zh: string; en: string }) => string; onMove: (row: CollaborationRow, stage: CollaborationStage) => void; onRemove: (row: CollaborationRow) => void; onViewCreator?: (creatorId: string) => void; onStatusChange?: (row: CollaborationRow, status: CollaborationSubStatus) => void }) {
+function InlineRowActions({ row, locale: l, onMove, onRemove, onViewCreator, onStatusChange, onEditOffer }: { row: CollaborationRow; locale: (value: { zh: string; en: string }) => string; onMove: (row: CollaborationRow, stage: CollaborationStage) => void; onRemove: (row: CollaborationRow) => void; onViewCreator?: (creatorId: string) => void; onStatusChange?: (row: CollaborationRow, status: CollaborationSubStatus) => void; onEditOffer?: (rowId: string) => void }) {
   const actionClassName = "inline-flex h-7 items-center justify-center rounded-[7px] border border-border bg-white px-2 text-[10px] font-medium text-slate transition hover:border-border-strong hover:text-ink";
   const detail = row.stage === "aiMatching" || row.stage === "shortlist" ? <button type="button" onClick={() => onViewCreator?.(row.creator.id)} className={actionClassName}>{l(L.details)}</button> : <Link href={`/collaborations/detail?record=${encodeURIComponent(row.id)}`} className={actionClassName}>{l(L.details)}</Link>;
   if (row.stage === "aiMatching") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onMove(row, "shortlist")} className={actionClassName}>{l(L.addToShortlist)}</button><button type="button" onClick={() => onMove(row, "outreach")} className={actionClassName}>{l(L.contactNow)}</button><button type="button" onClick={() => onRemove(row)} className={actionClassName}>{l(L.notFit)}</button>{detail}</div>;
   if (row.stage === "shortlist") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onMove(row, "outreach")} className={actionClassName}>{l(L.contactNow)}</button><button type="button" onClick={() => onRemove(row)} className={actionClassName}>{l(L.cancelShortlist)}</button>{detail}</div>;
-  if (row.stage === "confirmed" && row.subStatus !== "offerAccepted") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onStatusChange?.(row, "offerAwaitingConfirmation")} className={actionClassName}>{l(L.editOffer)}</button>{detail}</div>;
+  if (row.stage === "confirmed" && row.subStatus !== "offerAccepted") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onEditOffer?.(row.id)} className={actionClassName}>{l(L.editOffer)}</button>{detail}</div>;
   if (row.stage === "draft" && row.subStatus === "draftAwaitingSubmission") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onStatusChange?.(row, "draftUnderReview")} className={actionClassName}>{l(L.submitDraft)}</button>{detail}</div>;
   if (row.stage === "draft" && row.subStatus === "draftUnderReview") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onStatusChange?.(row, "draftApproved")} className={actionClassName}>{l(L.approveDraft)}</button><button type="button" onClick={() => onStatusChange?.(row, "draftRejected")} className={actionClassName}>{l(L.rejectDraft)}</button>{detail}</div>;
   if (row.stage === "draft" && row.subStatus === "draftRejected") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onStatusChange?.(row, "draftUnderReview")} className={actionClassName}>{l(L.editDraft)}</button>{detail}</div>;

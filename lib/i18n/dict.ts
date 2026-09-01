@@ -12,7 +12,7 @@ export const dict = {
   nav: {
     dashboard: { zh: "工作台", en: "Dashboard" },
     campaigns: { zh: "营销活动", en: "Campaign" },
-    creators: { zh: "达人管理", en: "Creators" },
+    creators: { zh: "达人中心", en: "Creator Hub" },
     collaborations: { zh: "合作管理", en: "Collaboration" },
     insights: { zh: "数据洞察", en: "Insight" },
     creative: { zh: "创意中心", en: "Creative" },
