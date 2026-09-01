@@ -29,7 +29,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 const L = {
-  title: { zh: "Creative", en: "Creative" },
+  title: { zh: "创意中心", en: "Creative" },
   subtitle: {
     zh: "从营销节点与趋势信号中发现机会，用 AI 生成策划、文案和内容，并沉淀可复用的品牌创意。",
     en: "Turn marketing moments and trend signals into plans, copy, content, and reusable brand ideas with AI.",

@@ -12,10 +12,11 @@ export const dict = {
   nav: {
     dashboard: { zh: "工作台", en: "Dashboard" },
     campaigns: { zh: "营销活动", en: "Campaign" },
-    creators: { zh: "达人中心", en: "Creator Hub" },
+    creators: { zh: "达人中心", en: "Creators" },
     collaborations: { zh: "合作管理", en: "Collaboration" },
-    insights: { zh: "数据洞察", en: "Insight" },
+    insights: { zh: "效果分析", en: "Insight" },
     creative: { zh: "创意中心", en: "Creative" },
+    brandInsights: { zh: "品牌洞察", en: "BrandRadar" },
     aiTools: { zh: "AI 工具", en: "AI Tools" },
     onboarding: { zh: "快速上手", en: "Onboarding" },
     onboardingHint: { zh: "5 步完成首次设置", en: "Complete setup in 5 steps" },

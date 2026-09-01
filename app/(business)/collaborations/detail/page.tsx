@@ -1,11 +1,19 @@
 "use client";
 
-import { ArrowLeft, CalendarDays, CreditCard, FileText, Mail, MessageSquare, Package, Reply, Send } from "lucide-react";
+import { ArrowLeft, CalendarDays, ChevronDown, CreditCard, FileText, Mail, MessageSquare, Package, Reply, Send } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useLocale } from "@/lib/i18n/use-i18n";
 
 type Tab = "info" | "email" | "offer" | "content" | "payment";
+
+const collaborationRecords = [
+  { id: "yoga", creator: "Yoga Anna", handle: "@yoga_anna", campaign: "618 Beauty Collab", brand: "Honeylab", avatar: "https://i.pravatar.cc/128?img=47" },
+  { id: "creator-one", creator: "Creator One", handle: "@creator_one", campaign: "Summer Yoga Wear Launch", brand: "Lumio Athletics", avatar: "https://i.pravatar.cc/128?img=5" },
+  { id: "nina", creator: "Nina Chen", handle: "@creator_two", campaign: "520 Gift Box Seeding", brand: "MuMu Gifting", avatar: "https://i.pravatar.cc/128?img=32" },
+  { id: "ariana", creator: "Ariana Lin", handle: "@ariana_makeup", campaign: "Winter Skincare Annual Review", brand: "Honeylab", avatar: "https://i.pravatar.cc/128?img=44" },
+] as const;
 
 const copy = {
   en: {
@@ -118,6 +126,8 @@ export default function CollaborationDetailPage() {
   const [locale] = useLocale();
   const l = copy[locale];
   const [tab, setTab] = useState<Tab>("info");
+  const [selectedRecordId, setSelectedRecordId] = useState("yoga");
+  const selectedRecord = collaborationRecords.find((item) => item.id === selectedRecordId) ?? collaborationRecords[0];
   const tabs: Array<[Tab, string]> = [["info", l.collaborationInfo], ["email", l.emailTab], ["offer", l.offer], ["content", l.content], ["payment", l.payment]];
 
   return (
@@ -132,11 +142,12 @@ export default function CollaborationDetailPage() {
             <span className={`absolute inset-x-3 bottom-0 h-[2px] rounded-full ${tab === id ? "bg-brand" : "bg-transparent"}`} />
           </button>
         ))}
+        <DropdownMenu><DropdownMenuTrigger asChild><button type="button" className="mb-2 ml-auto inline-flex h-8 min-w-[210px] items-center justify-between gap-4 rounded-[8px] border border-border bg-white px-3 text-[11px] font-medium text-ink hover:border-border-strong"><span className="truncate">{selectedRecord.creator} · {selectedRecord.campaign}</span><ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted" /></button></DropdownMenuTrigger><DropdownMenuContent align="end" className="min-w-[260px]">{collaborationRecords.map((record) => <DropdownMenuItem key={record.id} onSelect={() => setSelectedRecordId(record.id)}><img src={record.avatar} alt="" className="h-5 w-5 rounded-full object-cover" /><span className="min-w-0 flex-1 truncate">{record.creator} · {record.campaign}</span></DropdownMenuItem>)}</DropdownMenuContent></DropdownMenu>
       </nav>
 
       <div className="min-h-0 flex-1 overflow-y-auto bg-surface p-6 lg:p-8">
         <div className="mx-auto w-full max-w-[1180px]">
-          {tab === "info" && <CollaborationInfoTab l={l} />}
+          {tab === "info" && <CollaborationInfoTab l={l} record={selectedRecord} />}
           {tab === "email" && <EmailTab l={l} />}
           {tab === "offer" && <OfferTab l={l} />}
           {tab === "content" && <ContentTab l={l} />}
@@ -151,16 +162,16 @@ function Section({ title, children, className = "" }: { title: string; children:
   return <section className={`rounded-[14px] border border-border bg-surface p-5 ${className}`}><h3 className="mb-4 text-[13px] font-semibold text-ink">{title}</h3>{children}</section>;
 }
 
-function CollaborationInfoTab({ l }: { l: (typeof copy)["en"] }) {
+function CollaborationInfoTab({ l, record }: { l: (typeof copy)["en"]; record: (typeof collaborationRecords)[number] }) {
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(310px,0.85fr)]">
       <div className="space-y-5">
         <Section title={l.creatorProfile}>
           <div className="flex items-center gap-3 border-b border-border pb-4">
-            <img src="https://i.pravatar.cc/128?img=47" alt="Yoga Anna" className="h-11 w-11 rounded-full border border-white object-cover shadow-card" />
+            <img src={record.avatar} alt={record.creator} className="h-11 w-11 rounded-full border border-white object-cover shadow-card" />
             <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-ink">Yoga Anna</p>
-              <p className="mt-0.5 text-[10.5px] text-slate">@yoga_anna · United States</p>
+              <p className="text-[13px] font-semibold text-ink">{record.creator}</p>
+              <p className="mt-0.5 text-[10.5px] text-slate">{record.handle} · United States</p>
             </div>
           </div>
           <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
@@ -176,7 +187,7 @@ function CollaborationInfoTab({ l }: { l: (typeof copy)["en"] }) {
             <InfoTile label={l.goal} value="Brand awareness" />
             <InfoTile label="Category" value="Beauty & Skincare" />
             <InfoTile label={l.period} value="May 20 — Jun 30, 2026" />
-            <InfoTile label="Product" value="Summer Skincare Gift Box" />
+            <InfoTile label="Product" value={record.campaign} />
           </div>
           <div className="mt-4 border-t border-border pt-4"><p className="text-[10px] text-muted">Campaign description</p><p className="mt-1.5 text-[11px] leading-relaxed text-slate">Creator seeding and content distribution for a summer skincare gift box. The creator should highlight the product routine and tag the official Honeylab account.</p></div>
         </Section>

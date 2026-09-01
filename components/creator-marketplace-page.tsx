@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 const L = {
-  title: { zh: "达人中心", en: "Creator Hub" }, subtitle: { zh: "搜索、筛选和管理适合品牌合作的达人。", en: "Discover, qualify, and manage creators for your brand collaborations." },
+  title: { zh: "达人中心", en: "Creators" }, subtitle: { zh: "搜索、筛选和管理适合品牌合作的达人。", en: "Discover, qualify, and manage creators for your brand collaborations." },
   marketplace: { zh: "达人广场", en: "Creator Marketplace" }, private: { zh: "私域达人", en: "Private Creators" }, ai: { zh: "AI 搜索", en: "AI Search" }, keyword: { zh: "关键词搜索", en: "Keyword Search" },
   marketplaceSubtitle: { zh: "探索与筛选适合品牌合作的达人。", en: "Discover and qualify creators for your brand collaborations." },
   privateSubtitle: { zh: "管理品牌已沉淀的私域达人与分组。", en: "Organize your private creator relationships and groups." },

@@ -10,10 +10,10 @@ import {
   Handshake,
   LayoutDashboard,
   Palette,
+  Radar,
   Rocket,
   Search,
   Smile,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,7 +26,7 @@ const navItems = [
   { href: "/collaborations", labelKey: "nav.collaborations", icon: Handshake },
   { href: "/insights", labelKey: "nav.insights", icon: ChartNoAxesCombined },
   { href: "/creative", labelKey: "nav.creative", icon: Palette },
-  { href: "/ai-tools", labelKey: "nav.aiTools", icon: Sparkles },
+  { href: "/brand-insights", labelKey: "nav.brandInsights", icon: Radar },
   {
     href: "/employees",
     labelKey: "nav.employees",

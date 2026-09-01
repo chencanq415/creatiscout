@@ -1,6 +1,7 @@
 "use client";
 
 import { CampaignInfoPanel } from "@/components/campaign-drawer/info-panel";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown";
 import { CampaignPerformanceInsight } from "@/components/campaign-drawer/performance-insight";
 import { CampaignPipeline } from "@/components/campaign-drawer/pipeline";
 import { AIWorkflowConfig, mergeAIWorkflow } from "@/components/campaigns/ai-workflow-config";
@@ -8,9 +9,9 @@ import { useLoc } from "@/lib/i18n/use-i18n";
 import { useUIStore } from "@/lib/store/ui-store";
 import type { Campaign } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { ChevronLeft } from "lucide-react";
+import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { notFound, useParams } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 const L = {
@@ -30,8 +31,10 @@ type DetailTab = "details" | "collaboration" | "performance" | "workflow";
 
 export default function CampaignDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const l = useLoc();
   const campaign = useUIStore((state) => state.campaigns.find((item) => item.id === params.id));
+  const campaigns = useUIStore((state) => state.campaigns);
   const updateCampaign = useUIStore((state) => state.updateCampaign);
   const [activeTab, setActiveTab] = useState<DetailTab>("details");
   if (!campaign) return notFound();
@@ -85,6 +88,7 @@ export default function CampaignDetailPage() {
             />
           </button>
         ))}
+        <DropdownMenu><DropdownMenuTrigger asChild><button type="button" className="mb-2 ml-auto inline-flex h-8 min-w-[190px] items-center justify-between gap-4 rounded-[8px] border border-border bg-white px-3 text-[11px] font-medium text-ink hover:border-border-strong"><span className="truncate">{l(campaign.name)}</span><ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted" /></button></DropdownMenuTrigger><DropdownMenuContent align="end" className="min-w-[230px]">{campaigns.map((item) => <DropdownMenuItem key={item.id} onSelect={() => router.push(`/campaigns/${item.id}`)}>{l(item.name)}</DropdownMenuItem>)}</DropdownMenuContent></DropdownMenu>
       </div>
 
       <div className="min-h-0 flex-1 overflow-hidden">

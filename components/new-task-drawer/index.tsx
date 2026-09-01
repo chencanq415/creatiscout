@@ -1,17 +1,11 @@
 "use client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { employees } from "@/lib/mock/employees";
 import { useUIStore } from "@/lib/store/ui-store";
 import type { Campaign, ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronDown, GripVertical, Paperclip, Send, Sparkles, X } from "lucide-react";
+import { GripVertical, Paperclip, Send, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -38,10 +32,8 @@ const L = {
     en: "Got it, noted. Want me to turn this into a campaign task? Give me a rough budget and timeline and I'll get started.",
   },
   resizeAria: { zh: "拖动调整数字员工侧板宽度", en: "Drag to resize the digital employee panel" },
-  askEmployeeTitle: { zh: "Ask 数字员工", en: "Ask Digital Employee" },
   clear: { zh: "清空", en: "Clear" },
   closeChat: { zh: "关闭对话", en: "Close chat" },
-  assignTo: { zh: "派给", en: "Assign to" },
   thinking: { zh: "{name} 正在思考…", en: "{name} is thinking…" },
   quickPrompt1: {
     zh: "帮我建一个 618 美妆营销活动，预算 5 万",
@@ -84,7 +76,6 @@ export function NewTaskDrawer() {
     chatPanelWidth,
     setChatPanelWidth,
     activeEmployeeId,
-    setActiveEmployee,
     messages,
     pushMessage,
     resetChat,
@@ -298,17 +289,8 @@ export function NewTaskDrawer() {
                 className="h-7 w-7 flex-shrink-0 rounded-full"
               />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[14px] font-semibold tracking-tight text-ink">
-                  {chatCampaignContext ? l(L.askEmployeeTitle) : activeEmployee.name}
-                </div>
-                {chatCampaignContext ? (
-                  <div className="flex items-center gap-1 text-[11px] text-brand">
-                    <Sparkles className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">{chatCampaignContext.name}</span>
-                  </div>
-                ) : (
-                  <div className="truncate text-[11px] text-muted">{l(activeEmployee.role)}</div>
-                )}
+                <div className="truncate text-[14px] font-semibold tracking-tight text-ink">{activeEmployee.name}</div>
+                <div className="truncate text-[11px] text-muted">{l(activeEmployee.role)}</div>
               </div>
               <button
                 type="button"
@@ -325,41 +307,6 @@ export function NewTaskDrawer() {
               >
                 <X className="h-4 w-4" />
               </button>
-            </div>
-
-            {/* Employee picker */}
-            <div className="flex items-center gap-2 border-b border-border bg-surface-warm px-4 py-2">
-              <span className="text-[11px] text-muted">{l(L.assignTo)}</span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-[12px] hover:border-border-strong"
-                  >
-                    <img src={activeEmployee.avatar} alt="" className="h-4 w-4 rounded-full" />
-                    <span className="font-medium text-ink">{activeEmployee.name}</span>
-                    <ChevronDown className="h-3 w-3 text-muted" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  {employees.map((e) => (
-                    <DropdownMenuItem
-                      key={e.id}
-                      onClick={() => {
-                        setActiveEmployee(e.id);
-                        resetChat();
-                      }}
-                    >
-                      <img src={e.avatar} alt="" className="h-5 w-5 rounded-full" />
-                      <div className="flex-1">
-                        <div className="text-[13px] font-medium text-ink">{e.name}</div>
-                        <div className="text-[11px] text-muted">{l(e.role)}</div>
-                      </div>
-                      {e.id === activeEmployee.id && <Check className="h-3.5 w-3.5 text-brand" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
 
             {/* Messages */}

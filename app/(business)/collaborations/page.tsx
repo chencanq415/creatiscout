@@ -5,9 +5,10 @@ import { useCampaignCollaborationScope } from "@/components/campaign-drawer/coll
 import { creators } from "@/lib/mock/creators";
 import { useUIStore } from "@/lib/store/ui-store";
 import { cn, formatCurrency } from "@/lib/utils";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, FileText, Link2, Search, UploadCloud, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 type CollaborationStage = "aiMatching" | "shortlist" | "outreach" | "confirmed" | "draft" | "publication" | "payment" | "tracking";
 type CollaborationSubStatus =
@@ -84,6 +85,17 @@ const L = {
   approveDraft: { zh: "审核通过", en: "Approve draft" },
   rejectDraft: { zh: "审核不通过", en: "Reject draft" },
   editDraft: { zh: "编辑稿件", en: "Edit draft" },
+  uploadDraft: { zh: "上传草稿", en: "Upload draft" },
+  uploadDraftHint: { zh: "提交素材与 Caption，或附上可访问的内容链接。", en: "Submit media and a caption, or provide an accessible content link." },
+  manualUpload: { zh: "手动上传", en: "Manual upload" },
+  uploadLink: { zh: "上传链接", en: "Submit link" },
+  dragMedia: { zh: "拖拽素材至此处，或点击选择文件", en: "Drag media here, or click to select files" },
+  mediaFormats: { zh: "支持图片、视频、PDF 等素材格式", en: "Images, videos, PDFs, and other media are supported" },
+  caption: { zh: "Caption", en: "Caption" },
+  captionPlaceholder: { zh: "输入作品 Caption 或文案…", en: "Write the caption or post copy…" },
+  contentUrl: { zh: "内容链接", en: "Content link" },
+  contentUrlPlaceholder: { zh: "粘贴云盘、Figma 或其他内容链接", en: "Paste a Drive, Figma, or other content link" },
+  submitForReview: { zh: "提交审核", en: "Submit for review" },
   submitProof: { zh: "提交发布凭证", en: "Submit proof" },
   approveProof: { zh: "审核通过", en: "Approve proof" },
   rejectProof: { zh: "审核不通过", en: "Reject proof" },
@@ -104,7 +116,7 @@ const L = {
   shortlist: { zh: "候选达人", en: "Shortlist" },
   outreach: { zh: "达人建联", en: "Outreach" },
   offer: { zh: "议价中", en: "Negotiation" },
-  confirmed: { zh: "议价中", en: "Offer" },
+  confirmed: { zh: "确认合作", en: "Offer" },
   draft: { zh: "稿件创作", en: "Draft" },
   publication: { zh: "作品发布", en: "Publication" },
   payment: { zh: "款项结算", en: "Payment" },
@@ -333,6 +345,27 @@ function OutreachBriefDialog({ row, locale: l, mode = "edit", onClose, onSave }:
   </div>;
 }
 
+function DraftUploadDialog({ row, locale: l, onClose, onSubmit }: { row: CollaborationRow; locale: (value: { zh: string; en: string }) => string; onClose: () => void; onSubmit: () => void }) {
+  const [mode, setMode] = useState<"manual" | "link">("manual");
+  const [fileName, setFileName] = useState("");
+  const [caption, setCaption] = useState("");
+  const [contentUrl, setContentUrl] = useState("");
+  const addFile = (file?: File) => { if (file) setFileName(file.name); };
+  const canSubmit = mode === "manual" ? Boolean(fileName || caption.trim()) : Boolean(contentUrl.trim());
+
+  return createPortal(<div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <button type="button" aria-label="Close draft upload" onClick={onClose} className="absolute inset-0 bg-navy/20" />
+    <section role="dialog" aria-modal="true" aria-labelledby="draft-upload-title" className="relative w-full max-w-[540px] overflow-hidden rounded-[14px] border border-border bg-surface">
+      <header className="border-b border-border px-5 py-4"><p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{l(L.draft)}</p><h2 id="draft-upload-title" className="mt-1 text-[17px] font-bold text-navy">{l(L.uploadDraft)}</h2><p className="mt-1 text-[11px] text-slate">{l(L.uploadDraftHint)}</p></header>
+      <div className="px-5 py-5"><div className="rounded-[10px] bg-surface-warm px-4 py-3"><div className="text-[12px] font-semibold text-ink">{row.creator.name}</div><div className="mt-1 text-[10px] text-muted">{row.deliverable} · {l(row.campaign.name)}</div></div>
+        <div className="mt-5 flex gap-1 border-b border-border"><button type="button" onClick={() => setMode("manual")} className={cn("relative h-9 px-3 text-[11px] font-semibold", mode === "manual" ? "text-brand" : "text-slate")}><span className="inline-flex items-center gap-1.5"><UploadCloud className="h-3.5 w-3.5" />{l(L.manualUpload)}</span>{mode === "manual" && <span className="absolute inset-x-2 bottom-0 h-0.5 bg-brand" />}</button><button type="button" onClick={() => setMode("link")} className={cn("relative h-9 px-3 text-[11px] font-semibold", mode === "link" ? "text-brand" : "text-slate")}><span className="inline-flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" />{l(L.uploadLink)}</span>{mode === "link" && <span className="absolute inset-x-2 bottom-0 h-0.5 bg-brand" />}</button></div>
+        {mode === "manual" ? <div className="mt-4 space-y-4"><label onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); addFile(event.dataTransfer.files[0]); }} className="flex min-h-[116px] cursor-pointer flex-col items-center justify-center rounded-[10px] border border-dashed border-border-strong bg-page px-4 text-center hover:border-brand/45 hover:bg-soft-pink/20"><input type="file" className="sr-only" onChange={(event) => addFile(event.target.files?.[0])} /><UploadCloud className="h-5 w-5 text-brand" /><span className="mt-2 text-[11px] font-medium text-ink">{fileName || l(L.dragMedia)}</span><span className="mt-1 text-[10px] text-muted">{l(L.mediaFormats)}</span></label><label className="block"><span className="text-[11px] font-medium text-ink">{l(L.caption)}</span><textarea value={caption} onChange={(event) => setCaption(event.target.value)} placeholder={l(L.captionPlaceholder)} className="mt-1.5 min-h-[92px] w-full resize-y rounded-[8px] border border-border bg-white px-3 py-2.5 text-[12px] text-ink outline-none focus:border-brand/40" /></label></div> : <label className="mt-4 block"><span className="text-[11px] font-medium text-ink">{l(L.contentUrl)}</span><div className="relative mt-1.5"><Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" /><input value={contentUrl} onChange={(event) => setContentUrl(event.target.value)} placeholder={l(L.contentUrlPlaceholder)} className="h-10 w-full rounded-[8px] border border-border bg-white pl-9 pr-3 text-[12px] text-ink outline-none focus:border-brand/40" /></div></label>}
+      </div>
+      <footer className="flex justify-end gap-2 border-t border-border px-5 py-3.5"><button type="button" onClick={onClose} className="h-8 rounded-[7px] border border-border px-3 text-[10px] font-medium text-slate hover:text-ink">{l(L.cancel)}</button><button type="button" disabled={!canSubmit} onClick={onSubmit} className="h-8 rounded-[7px] bg-brand px-3 text-[10px] font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40">{l(L.submitForReview)}</button></footer>
+    </section>
+  </div>, document.body);
+}
+
 function CreatorDetailDrawer({ creator, locale: l, onClose }: { creator: (typeof creators)[number]; locale: (value: { zh: string; en: string }) => string; onClose: () => void }) {
   const platforms = Array.from(new Set([creator.platform, "Instagram", "TikTok", "YouTube"]));
   const [platform, setPlatform] = useState(creator.platform);
@@ -366,12 +399,13 @@ function formatCompactMetric(value: number) {
 }
 
 function InlineRowActions({ row, locale: l, onMove, onRemove, onViewCreator, onStatusChange, onEditOffer }: { row: CollaborationRow; locale: (value: { zh: string; en: string }) => string; onMove: (row: CollaborationRow, stage: CollaborationStage) => void; onRemove: (row: CollaborationRow) => void; onViewCreator?: (creatorId: string) => void; onStatusChange?: (row: CollaborationRow, status: CollaborationSubStatus) => void; onEditOffer?: (rowId: string) => void }) {
+  const [draftUploadOpen, setDraftUploadOpen] = useState(false);
   const actionClassName = "inline-flex h-7 items-center justify-center rounded-[7px] border border-border bg-white px-2 text-[10px] font-medium text-slate transition hover:border-border-strong hover:text-ink";
   const detail = row.stage === "aiMatching" || row.stage === "shortlist" ? <button type="button" onClick={() => onViewCreator?.(row.creator.id)} className={actionClassName}>{l(L.details)}</button> : <Link href={`/collaborations/detail?record=${encodeURIComponent(row.id)}`} className={actionClassName}>{l(L.details)}</Link>;
   if (row.stage === "aiMatching") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onMove(row, "shortlist")} className={actionClassName}>{l(L.addToShortlist)}</button><button type="button" onClick={() => onMove(row, "outreach")} className={actionClassName}>{l(L.contactNow)}</button><button type="button" onClick={() => onRemove(row)} className={actionClassName}>{l(L.notFit)}</button>{detail}</div>;
   if (row.stage === "shortlist") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onMove(row, "outreach")} className={actionClassName}>{l(L.contactNow)}</button><button type="button" onClick={() => onRemove(row)} className={actionClassName}>{l(L.cancelShortlist)}</button>{detail}</div>;
   if (row.stage === "confirmed" && row.subStatus !== "offerAccepted") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onEditOffer?.(row.id)} className={actionClassName}>{l(L.editOffer)}</button>{detail}</div>;
-  if (row.stage === "draft" && row.subStatus === "draftAwaitingSubmission") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onStatusChange?.(row, "draftUnderReview")} className={actionClassName}>{l(L.submitDraft)}</button>{detail}</div>;
+  if (row.stage === "draft" && row.subStatus === "draftAwaitingSubmission") return <><div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => setDraftUploadOpen(true)} className={actionClassName}>{l(L.submitDraft)}</button>{detail}</div>{draftUploadOpen && <DraftUploadDialog row={row} locale={l} onClose={() => setDraftUploadOpen(false)} onSubmit={() => { onStatusChange?.(row, "draftUnderReview"); setDraftUploadOpen(false); }} />}</>;
   if (row.stage === "draft" && row.subStatus === "draftUnderReview") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onStatusChange?.(row, "draftApproved")} className={actionClassName}>{l(L.approveDraft)}</button><button type="button" onClick={() => onStatusChange?.(row, "draftRejected")} className={actionClassName}>{l(L.rejectDraft)}</button>{detail}</div>;
   if (row.stage === "draft" && row.subStatus === "draftRejected") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onStatusChange?.(row, "draftUnderReview")} className={actionClassName}>{l(L.editDraft)}</button>{detail}</div>;
   if (row.stage === "publication" && row.subStatus === "proofAwaitingSubmission") return <div className="flex items-center justify-end gap-1.5 whitespace-nowrap"><button type="button" onClick={() => onStatusChange?.(row, "proofUnderReview")} className={actionClassName}>{l(L.submitProof)}</button>{detail}</div>;
