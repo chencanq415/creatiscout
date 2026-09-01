@@ -119,8 +119,9 @@ export function AccountMenu({ collapsed = false }: AccountMenuProps) {
         <MenuItem
           icon={<Settings className="h-3.5 w-3.5" />}
           label={t("account.accountSettings")}
+          onClick={() => router.push("/settings")}
         />
-        <MenuItem icon={<Bell className="h-3.5 w-3.5" />} label={t("account.messageCenter")} />
+        <MenuItem icon={<Bell className="h-3.5 w-3.5" />} label={t("account.messageCenter")} onClick={() => router.push("/messages")} />
 
         {/* Language submenu */}
         <Popover open={langOpen} onOpenChange={setLangOpen}>

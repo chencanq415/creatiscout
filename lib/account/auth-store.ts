@@ -39,6 +39,7 @@ interface AuthState {
   loginWithGoogle: (role: AccountRole) => void;
   resetPassword: (email: string, password: string) => AuthResult;
   logout: () => void;
+  updateCurrentUser: (patch: Partial<Pick<AuthUser, "name" | "email" | "workspaceName">>) => void;
   setEmployeePlan: (plan: EmployeePlan) => void;
 }
 
@@ -126,6 +127,17 @@ export const useAuthStore = create<AuthState>()(
         return { ok: true };
       },
       logout: () => set({ currentUser: null }),
+      updateCurrentUser: (patch) =>
+        set((state) => {
+          if (!state.currentUser) return state;
+          const currentUser = { ...state.currentUser, ...patch };
+          return {
+            currentUser,
+            users: state.users.map((user) =>
+              user.id === currentUser.id ? { ...user, ...patch } : user,
+            ),
+          };
+        }),
       setEmployeePlan: (plan) =>
         set((state) => {
           if (!state.currentUser) return state;

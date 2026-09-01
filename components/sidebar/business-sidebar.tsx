@@ -8,6 +8,7 @@ import {
   ChevronRight,
   FileText,
   Handshake,
+  LayoutDashboard,
   Palette,
   Rocket,
   Search,
@@ -19,6 +20,7 @@ import { usePathname } from "next/navigation";
 import { AccountMenu } from "./account-menu";
 
 const navItems = [
+  { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/campaigns", labelKey: "nav.campaigns", icon: FileText },
   { href: "/creators", labelKey: "nav.creators", icon: Search },
   { href: "/collaborations", labelKey: "nav.collaborations", icon: Handshake },
@@ -55,7 +57,7 @@ export function BusinessSidebar() {
         )}
       >
         <Link
-          href="/campaigns"
+          href="/dashboard"
           aria-label="CreatiScout"
           className={cn("flex min-w-0 items-center", expanded ? "flex-1 gap-2" : "flex-shrink-0")}
         >

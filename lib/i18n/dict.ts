@@ -10,7 +10,7 @@ export function loc(t: LText | string, locale: Locale): string {
 export const dict = {
   // Sidebar nav
   nav: {
-    dashboard: { zh: "总览", en: "Dashboard" },
+    dashboard: { zh: "工作台", en: "Dashboard" },
     campaigns: { zh: "营销活动", en: "Campaign" },
     creators: { zh: "达人管理", en: "Creators" },
     collaborations: { zh: "合作管理", en: "Collaboration" },
