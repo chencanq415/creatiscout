@@ -25,6 +25,18 @@ export const dict = {
     pool: { zh: "私域达人池", en: "Private Pool" },
     mail: { zh: "邮件中心", en: "Outreach Inbox" },
     employees: { zh: "数字员工", en: "Digital Employee" },
+    discoverDescription: { zh: "发现达人并自动建联", en: "Find and connect with creators" },
+    campaignDescription: { zh: "AI 自动管理达人营销全流程", en: "AI-managed campaigns end to end" },
+    creatorDiscovery: { zh: "达人发现", en: "Discovery" },
+    creatorOutreach: { zh: "达人建联", en: "Outreach" },
+    creatorPrivate: { zh: "私有达人", en: "Private Creators" },
+    brandExplore: { zh: "探索", en: "Explore" },
+    brandCompetitors: { zh: "竞品分析", en: "Competitors" },
+    creativeCalendar: { zh: "营销日历", en: "Marketing Calendar" },
+    creativeTrends: { zh: "趋势", en: "Trends" },
+    creativeAiTools: { zh: "AI 工具", en: "AI Tools" },
+    collapseSidebar: { zh: "收起", en: "Collapse" },
+    expandSidebar: { zh: "展开", en: "Expand" },
   },
   // Common
   common: {

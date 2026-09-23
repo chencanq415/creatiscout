@@ -3,7 +3,20 @@ import { campaigns as initialCampaigns } from "@/lib/mock/campaigns";
 import type { Campaign, ChatMessage } from "@/lib/types";
 import { create } from "zustand";
 
+export type ProductMode = "discover" | "campaign";
+export type DiscoverSections = {
+  creators: "discovery" | "outreach" | "private";
+  brandRadar: "explore" | "competitors";
+  creative: "calendar" | "trends" | "ai-tools";
+};
+
 interface UIState {
+  // Top-level product mode
+  productMode: ProductMode;
+  setProductMode: (mode: ProductMode) => void;
+  discoverSections: DiscoverSections;
+  setDiscoverSection: <K extends keyof DiscoverSections>(area: K, section: DiscoverSections[K]) => void;
+
   // Sidebar collapse
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
@@ -51,6 +64,12 @@ interface UIState {
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
+  productMode: "campaign",
+  setProductMode: (productMode) => set({ productMode }),
+  discoverSections: { creators: "discovery", brandRadar: "explore", creative: "calendar" },
+  setDiscoverSection: (area, section) =>
+    set((state) => ({ discoverSections: { ...state.discoverSections, [area]: section } })),
+
   sidebarCollapsed: false,
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 

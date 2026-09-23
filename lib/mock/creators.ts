@@ -1,4 +1,4 @@
-import type { Creator, CreatorDeal } from "@/lib/types";
+import type { Creator, CreatorDeal, CreatorProfileData } from "@/lib/types";
 
 export const creators: Creator[] = [
   {
@@ -114,6 +114,69 @@ export const creators: Creator[] = [
     collaborations: 0,
   },
 ];
+
+const coreCategories = [
+  ["Skincare", "Beauty"],
+  ["Beauty", "Lifestyle"],
+  ["Beauty", "Fashion"],
+  ["Wellness", "Fitness"],
+  ["Lifestyle", "UGC"],
+  ["Makeup", "Daily routine"],
+  ["Beauty", "Tutorial"],
+] as const;
+
+const channelPlatforms = ["RedNote", "TikTok", "Instagram"] as const;
+
+/** Rich, per-creator mock records shaped like the production data model. */
+export const creatorProfiles: Record<string, CreatorProfileData> = Object.fromEntries(
+  creators.map((creator, index) => {
+    const primaryId = `${creator.id}-${creator.platform.toLowerCase()}`;
+    const platformList = [creator.platform, ...channelPlatforms.filter((item) => item !== creator.platform)].slice(0, 3) as CreatorProfileData["channels"][number]["platform"][];
+    const channels = platformList.map((platform, channelIndex) => {
+      const factor = channelIndex === 0 ? 1 : channelIndex === 1 ? 0.46 : 0.2;
+      const followerCount = Math.round(creator.followers * factor);
+      return {
+        channelId: channelIndex === 0 ? primaryId : `${creator.id}-${platform.toLowerCase()}`,
+        creatorId: creator.id,
+        platform,
+        username: creator.handle.replace("@", ""),
+        profileUrl: `https://${platform.toLowerCase()}.com/${creator.handle.replace("@", "")}`,
+        followerCount,
+        avgEngagementRate: Number(Math.max(2.8, creator.engagement - channelIndex * 1.15).toFixed(1)),
+        avgViews: Math.round(followerCount * (0.2 + creator.engagement / 100)),
+        avgLikes: Math.round(followerCount * (0.038 + creator.engagement / 100)),
+        avgComments: Math.round(followerCount * 0.004),
+        avgShares: Math.round(followerCount * 0.002),
+        channelCategory: coreCategories[index][0],
+        isVerified: index % 3 !== 2,
+      };
+    });
+    const makeAudience = (channelId: string) => ({
+      channelId,
+      geoDistribution: [{ label: "United States", percentage: 62 + (index % 3) * 4 }, { label: "Canada", percentage: 11 }, { label: "United Kingdom", percentage: 8 }],
+      genderDistribution: [{ label: "Women", percentage: 72 - index }, { label: "Men", percentage: 26 + index }, { label: "Other", percentage: 2 }],
+      ageDistribution: [{ label: "18–24", percentage: 34 }, { label: "25–34", percentage: 42 }, { label: "35–44", percentage: 16 }],
+      audienceInterests: [...coreCategories[index], "Product reviews", "Daily routines"],
+    });
+    const makePerformance = (channel: typeof channels[number]) => ({
+      channelId: channel.channelId,
+      recentContents: ["Morning routine", "Product review", "Beauty favorites"].map((title, contentIndex) => ({ title, type: contentIndex === 1 ? "Post" : "Video", publishedAt: `${contentIndex + 1}d ago`, views: Math.round(channel.avgViews * (1.1 - contentIndex * 0.12)), engagements: Math.round(channel.avgLikes * (1.08 - contentIndex * 0.1)) })),
+      brandMentionPerf: { engagementRate: channel.avgEngagementRate + 0.7, effectiveness: 82 + (index % 8), saturation: 28 + (index % 5) * 6 },
+      affiliatePerf: { engagementRate: channel.avgEngagementRate - 0.4, conversionEffectiveness: 74 + (index % 10), saturation: 18 + (index % 5) * 5 },
+      publishTimePattern: [{ label: "Mon–Wed", score: 86 }, { label: "Thu–Fri", score: 78 }, { label: "Weekend", score: 69 }],
+      peerPercentile: { engagement: 88 - index, likes: 84 - index, comments: 81 - index },
+    });
+    return [creator.id, {
+      main: { creatorId: creator.id, creatorName: creator.name, avatarUrl: creator.avatar, residentCountry: "United States", coreCategories: [...coreCategories[index]], bio: creator.reason.en, authenticityScore: 96 - index, createdAt: "2026-03-12", updatedAt: "Today" },
+      channels,
+      audienceProfiles: Object.fromEntries(channels.map((channel) => [channel.channelId, makeAudience(channel.channelId)])),
+      contentPerformance: Object.fromEntries(channels.map((channel) => [channel.channelId, makePerformance(channel)])),
+      commercialInfo: { estimatedPriceRange: `$${Math.max(1800, (creator.averageQuote ?? 6000) - 1200).toLocaleString()}–$${((creator.averageQuote ?? 6000) + 1800).toLocaleString()}`, avgCpe: Number((0.32 + index * 0.04).toFixed(2)), avgCpm: 18 + index * 2, cooperatedBrands: ["SHEIN", "Nike", index % 2 ? "Aesop" : "Glossier"], contactEmail: `partnerships@${creator.handle.replace("@", "")}.com`, contactPhone: "+1 ••• ••• 0482", shippingAddress: { city: "Los Angeles", country: "United States", saved: true } },
+      brandSafety: Object.fromEntries(channels.map((channel) => [channel.channelId, { safetyOverview: "Safe", riskDetection: [{ label: "Adult content", level: "low" }, { label: "Restricted goods", level: "low" }, { label: "Violence", level: "low" }], complianceStatus: "Compliant" }])),
+      systemManagement: { campaignId: "618 Beauty Collab", groupTag: index < 3 ? "Selected" : "Lookalikes", owner: "Lucy · Content Ops", customRating: 5 - (index % 2), customTags: ["Beauty shortlist", index % 2 ? "Review" : "Priority"], operationLogs: [{ at: "Today, 10:24", operator: "Lucy", type: "Updated shortlist" }, { at: "Yesterday", operator: "System", type: "Refreshed channel data" }] },
+    }];
+  }),
+);
 
 // Mock deals reflecting the new business SOP stages.
 // Each creator sits in one of: interested / submitted / internal_review / client_review / negotiating / won / handoff

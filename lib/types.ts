@@ -381,6 +381,76 @@ export interface Creator {
   collaborations?: number;
 }
 
+/** Canonical creator profile model used by Discover. `Creator` above stays as the
+ * lightweight list/search record so Campaign views remain independent. */
+export interface CreatorChannel {
+  channelId: string;
+  creatorId: string;
+  platform: "Instagram" | "TikTok" | "YouTube" | "RedNote" | "Twitter";
+  username: string;
+  profileUrl: string;
+  followerCount: number;
+  avgEngagementRate: number;
+  avgViews: number;
+  avgLikes: number;
+  avgComments: number;
+  avgShares: number;
+  channelCategory: string;
+  isVerified: boolean;
+}
+
+export interface AudienceProfile {
+  channelId: string;
+  geoDistribution: Array<{ label: string; percentage: number }>;
+  genderDistribution: Array<{ label: string; percentage: number }>;
+  ageDistribution: Array<{ label: string; percentage: number }>;
+  audienceInterests: string[];
+}
+
+export interface ContentPerformance {
+  channelId: string;
+  recentContents: Array<{ title: string; type: string; publishedAt: string; views: number; engagements: number }>;
+  brandMentionPerf: { engagementRate: number; effectiveness: number; saturation: number };
+  affiliatePerf: { engagementRate: number; conversionEffectiveness: number; saturation: number };
+  publishTimePattern: Array<{ label: string; score: number }>;
+  peerPercentile: { engagement: number; likes: number; comments: number };
+}
+
+export interface CreatorProfileData {
+  main: {
+    creatorId: string;
+    creatorName: string;
+    avatarUrl: string;
+    residentCountry: string;
+    coreCategories: string[];
+    bio: string;
+    authenticityScore: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+  channels: CreatorChannel[];
+  audienceProfiles: Record<string, AudienceProfile>;
+  contentPerformance: Record<string, ContentPerformance>;
+  commercialInfo: {
+    estimatedPriceRange: string;
+    avgCpe: number;
+    avgCpm: number;
+    cooperatedBrands: string[];
+    contactEmail: string;
+    contactPhone: string;
+    shippingAddress: { city: string; country: string; saved: boolean };
+  };
+  brandSafety: Record<string, { safetyOverview: "Safe" | "Low Risk" | "High Risk"; riskDetection: Array<{ label: string; level: "low" | "medium" | "high" }>; complianceStatus: "Compliant" | "Review needed" }>;
+  systemManagement: {
+    campaignId: string;
+    groupTag: "Selected" | "Rejected" | "Lookalikes";
+    owner: string;
+    customRating: number;
+    customTags: string[];
+    operationLogs: Array<{ at: string; operator: string; type: string }>;
+  };
+}
+
 /** @deprecated 旧建联轮次模型，改用 OutreachEvent */
 export interface DealRound {
   round: 1 | 2 | "final" | "handoff";

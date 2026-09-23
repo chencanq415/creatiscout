@@ -353,6 +353,10 @@ function StudioPreview({ index }: { index: number }) {
 export default function CreativePage() {
   const l = useLoc();
   const openChat = useUIStore((state) => state.openChat);
+  const productMode = useUIStore((state) => state.productMode);
+  const sectionTab = useUIStore((state) => state.discoverSections.creative);
+  const isDiscover = productMode === "discover";
+  const discoverTitle = sectionTab === "calendar" ? L.calendar : sectionTab === "trends" ? { zh: "趋势", en: "Trends" } : { zh: "AI 工具", en: "AI Tools" };
   const [monthIndex, setMonthIndex] = useState(0);
   const [trendRange, setTrendRange] = useState<"7d" | "30d">("7d");
   const month = calendarMonths[monthIndex];
@@ -366,12 +370,9 @@ export default function CreativePage() {
   return (
     <div className="min-h-full bg-surface px-6 py-5 lg:px-8">
       <div className="w-full">
-        <header>
-          <h1 className="text-[26px] font-bold tracking-[-0.03em] text-navy">{l(L.title)}</h1>
-          <p className="mt-1 text-[11.5px] text-slate">{l(L.subtitle)}</p>
-        </header>
+        {isDiscover ? <header className="flex h-14 items-center"><h1 className="text-[30px] font-bold tracking-[-0.035em] text-navy">{l(discoverTitle)}</h1></header> : <header><h1 className="text-[26px] font-bold tracking-[-0.03em] text-navy">{l(L.title)}</h1><p className="mt-1 text-[11.5px] text-slate">{l(L.subtitle)}</p></header>}
 
-        <section className="mt-4 overflow-hidden rounded-[14px] border border-border bg-surface shadow-card">
+        {(!isDiscover || sectionTab === "calendar") && <section className="mt-4 overflow-hidden rounded-[14px] border border-border bg-surface shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2.5">
             <div className="flex items-start gap-3">
               <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[9px] bg-soft-pink text-brand">
@@ -489,9 +490,9 @@ export default function CreativePage() {
               </div>
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section className="mt-4">
+        {(!isDiscover || sectionTab === "trends") && <section className="mt-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-[18px] font-bold tracking-[-0.02em] text-navy">
@@ -646,9 +647,9 @@ export default function CreativePage() {
               </div>
             </article>
           </div>
-        </section>
+        </section>}
 
-        <section className="mt-7">
+        {(!isDiscover || sectionTab === "ai-tools") && <section className={isDiscover ? "mt-5" : "mt-7"}>
           <div>
             <h2 className="text-[18px] font-bold tracking-[-0.02em] text-navy">
               {l(L.creativeStudio)}
@@ -698,9 +699,9 @@ export default function CreativePage() {
               );
             })}
           </div>
-        </section>
+        </section>}
 
-        <section className="mt-7 pb-4">
+        {(!isDiscover || sectionTab === "trends") && <section className="mt-7 pb-4">
           <div className="flex items-end justify-between gap-3">
             <div>
               <h2 className="text-[18px] font-bold tracking-[-0.02em] text-navy">
@@ -751,7 +752,7 @@ export default function CreativePage() {
               );
             })}
           </div>
-        </section>
+        </section>}
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useUIStore } from "@/lib/store/ui-store";
 import { useLoc } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight, BellRing, Building2, Globe2, MessageSquareText, Radar, Search, Sparkles, TrendingUp, UsersRound } from "lucide-react";
+import { ArrowUpRight, BarChart3, BellRing, Building2, Globe2, MessageSquareText, Radar, Search, Sparkles, TrendingUp, UsersRound } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -58,6 +59,8 @@ const featuredBrands = [
 
 export default function BrandInsightsPage() {
   const l = useLoc();
+  const productMode = useUIStore((state) => state.productMode);
+  const sectionTab = useUIStore((state) => state.discoverSections.brandRadar);
   const [brand, setBrand] = useState("");
   const [ready, setReady] = useState(false);
   const [activeFilter, setActiveFilter] = useState(0);
@@ -65,7 +68,7 @@ export default function BrandInsightsPage() {
   const explore = () => setReady(true);
 
   return <main className="min-h-full bg-surface px-6 py-6 lg:px-8"><div className="mx-auto w-full max-w-[1400px]">
-    {!ready ? <section>
+    {productMode === "discover" && sectionTab === "competitors" ? <CompetitorsPanel /> : !ready ? <section>
       <div className="relative min-h-[290px] overflow-hidden rounded-[18px] border border-white/90 bg-white/65 shadow-[0_14px_42px_rgba(39,48,71,0.06)] backdrop-blur-xl">
       <div className="pointer-events-none absolute -left-24 -top-36 h-[330px] w-[500px] rounded-full bg-soft-pink/70 blur-3xl" /><div className="pointer-events-none absolute -right-20 bottom-[-150px] h-[360px] w-[500px] rounded-full bg-brand/10 blur-3xl" /><div className="pointer-events-none absolute left-1/2 top-1/2 h-[300px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand/10" />
       {signalDots.map((signal) => <div key={signal.label} className={cn("pointer-events-none absolute hidden items-center gap-2 rounded-[10px] border border-white/80 bg-white/55 px-3 py-2 backdrop-blur-md md:flex", signal.className)}><span className={cn("flex h-7 w-7 items-center justify-center rounded-[7px] text-[14px] font-semibold", signal.tone === "pink" ? "bg-soft-pink text-brand" : "bg-soft-blue text-blue-text")}>{signal.icon}</span><span className="text-[10px] font-semibold text-slate">{signal.label}</span></div>)}
@@ -77,6 +80,19 @@ export default function BrandInsightsPage() {
     </section> : <BrandReport brand={displayedBrand} onBack={() => setReady(false)} />}
   </div></main>;
 }
+
+function LegacyCompetitorsPanel() {
+  const l = useLoc();
+  const competitors = featuredBrands.slice(0, 4).map((brand, index) => ({ brand, mentions: ["128K", "96K", "74K", "52K"][index], share: ["32%", "24%", "19%", "13%" ][index], growth: [18, 12, 27, 9][index], creators: [428, 316, 204, 148][index] }));
+  return <section><div className="flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-[20px] font-bold tracking-[-0.025em] text-navy">{l({ zh: "竞品表现对比", en: "Competitor landscape" })}</h2><p className="mt-1 text-[11px] text-slate">{l({ zh: "对比品牌声量、增长速度、达人覆盖和近期市场动作。", en: "Compare share of voice, momentum, creator coverage, and recent market moves." })}</p></div><Button variant="outline"><Sparkles className="h-3.5 w-3.5" />{l({ zh: "生成竞品解读", en: "Generate analysis" })}</Button></div><div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{competitors.map(({ brand, mentions, share, growth, creators }) => <article key={brand.name} className="rounded-[14px] border border-border bg-white p-4"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[10px] border border-border bg-white">{brand.logo ? <img src={brand.logo} alt="" className="h-full w-full object-contain p-2" /> : <Building2 className="h-4 w-4 text-muted" />}</span><div><h3 className="text-[13px] font-semibold text-ink">{brand.name}</h3><p className="text-[9px] text-muted">{brand.url}</p></div></div><div className="mt-4 grid grid-cols-2 gap-2"><CompareMetric label={l({ zh: "品牌提及", en: "Mentions" })} value={mentions} /><CompareMetric label={l({ zh: "声量份额", en: "Share" })} value={share} /><CompareMetric label={l({ zh: "达人覆盖", en: "Creators" })} value={String(creators)} /><CompareMetric label={l({ zh: "增长", en: "Growth" })} value={`+${growth}%`} positive /></div></article>)}</div><div className="mt-4 grid gap-4 xl:grid-cols-[1.2fr_.8fr]"><article className="rounded-[14px] border border-border bg-white p-5"><div className="flex items-center gap-2"><BarChart3 className="h-4 w-4 text-brand" /><h3 className="text-[14px] font-semibold text-navy">{l({ zh: "市场位置", en: "Market position" })}</h3></div><div className="mt-5 space-y-4">{competitors.map(({ brand, growth }, index) => <div key={brand.name} className="grid grid-cols-[90px_1fr_44px] items-center gap-3"><span className="text-[10.5px] font-medium text-ink">{brand.name}</span><div className="h-2 overflow-hidden rounded-full bg-page"><div className={cn("h-full rounded-full", index === 0 ? "bg-brand" : index === 1 ? "bg-[#7c8fbd]" : index === 2 ? "bg-teal" : "bg-[#c6a36b]")} style={{ width: `${48 + growth * 2}%` }} /></div><span className="text-right text-[9.5px] font-semibold text-slate">+{growth}%</span></div>)}</div></article><article className="rounded-[14px] border border-border bg-white p-5"><h3 className="text-[14px] font-semibold text-navy">{l({ zh: "近期动作", en: "Recent moves" })}</h3><div className="mt-4 space-y-3">{[l({ zh: "Nike 扩大跑步社区达人合作", en: "Nike expanded running-community creator partnerships" }), l({ zh: "SHEIN 提高新品短视频发布频率", en: "SHEIN increased short-form launch frequency" }), l({ zh: "Aesop 加码门店体验内容", en: "Aesop invested in retail-experience content" })].map((item, index) => <div key={item} className="flex gap-3"><span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-brand" /><div><p className="text-[10.5px] leading-5 text-slate">{item}</p><span className="text-[8.5px] text-muted">{index + 1} {l({ zh: "天前", en: "days ago" })}</span></div></div>)}</div></article></div></section>;
+}
+
+function CompetitorsPanel() {
+  const l = useLoc();
+  return <section><div className="flex h-14 flex-wrap items-center justify-between gap-4"><h1 className="text-[30px] font-bold tracking-[-0.035em] text-navy">{l({ zh: "竞品分析", en: "Competitors" })}</h1><Button variant="outline"><Sparkles className="h-3.5 w-3.5" />{l({ zh: "生成竞品解读", en: "Generate analysis" })}</Button></div><div className="mt-5 [&>section>div:first-child]:hidden"><LegacyCompetitorsPanel /></div></section>;
+}
+
+function CompareMetric({ label, value, positive }: { label: string; value: string; positive?: boolean }) { return <div className="rounded-[9px] bg-page p-2.5"><p className="text-[8.5px] text-muted">{label}</p><p className={cn("mt-1 text-[13px] font-bold", positive ? "text-teal-text" : "text-ink")}>{value}</p></div>; }
 
 function BrandGrid({ category: _category }: { category: number }) {
   const l = useLoc();
